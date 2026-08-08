@@ -1,0 +1,52 @@
+// testbench for mux1024
+module tb_mux1024;
+
+reg [1023:0] I;
+reg [9:0] S;
+wire Y;
+
+integer i;
+integer errors;
+
+mux1024 uut (
+    .I(I),
+    .S(S),
+    .Y(Y)
+);
+
+initial begin
+
+    errors = 0;
+
+    // Give different values to inputs
+    for (i = 0; i < 1024; i = i + 1) begin
+        I[i] = i % 2;
+    end
+
+    // Test all 1024 inputs
+    for (i = 0; i < 1024; i = i + 1) begin
+
+        S = i;
+        #10;
+
+        if (Y !== I[i]) begin
+            $display("FAIL: S=%0d Expected=%b Got=%b",
+                     i, I[i], Y);
+            errors = errors + 1;
+        end
+        else begin
+            $display("PASS: S=%0d Y=%b", i, Y);
+        end
+
+    end
+
+    if (errors == 0)
+        $display("ALL 1024 TESTS PASSED");
+    else
+        $display("TEST FAILED: %0d errors", errors);
+
+    $finish;
+
+end
+
+endmodule
