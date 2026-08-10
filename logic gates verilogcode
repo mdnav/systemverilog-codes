@@ -1,0 +1,37 @@
+// logic_gates.v
+
+module logic_gates (
+    input  A,
+    input  B,
+
+    output AND_out,
+    output OR_out,
+    output NOT_A,
+    output NAND_out,
+    output NOR_out,
+    output XOR_out,
+    output XNOR_out
+);
+
+    // AND Gate
+    assign AND_out = A & B;
+
+    // OR Gate
+    assign OR_out = A | B;
+
+    // NOT Gate
+    assign NOT_A = ~A;
+
+    // NAND Gate
+    assign NAND_out = ~(A & B);
+
+    // NOR Gate
+    assign NOR_out = ~(A | B);
+
+    // XOR Gate
+    assign XOR_out = A ^ B;
+
+    // XNOR Gate
+    assign XNOR_out = ~(A ^ B);
+
+endmodule
