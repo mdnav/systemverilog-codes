@@ -604,7 +604,7 @@ Currently building knowledge across both **hardware and software engineering** t
 
 ### GitHub
 
-https://github.com/mohammadnaveed1701-source
+https://github.com/mdnav
 
 ### LinkedIn
 
