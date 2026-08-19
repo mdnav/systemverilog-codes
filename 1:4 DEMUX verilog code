@@ -1,4 +1,4 @@
-// demux_1to4.v
+// demux_1to4.v for Dataflow Modeling
 
 module demux_1to4 (
     input D,
