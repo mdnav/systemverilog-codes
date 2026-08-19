@@ -1,0 +1,64 @@
+// tb_mux_4to1.v
+
+`timescale 1ns/1ps
+
+module tb_mux_4to1;
+
+    reg I0, I1, I2, I3;
+    reg S0, S1;
+
+    wire Y;
+
+    // Instantiate 4:1 MUX
+    mux_4to1 DUT (
+        .I0(I0),
+        .I1(I1),
+        .I2(I2),
+        .I3(I3),
+        .S0(S0),
+        .S1(S1),
+        .Y(Y)
+    );
+
+    initial begin
+
+        $display("--------------------------------");
+        $display(" S1 S0 | I0 I1 I2 I3 | Y");
+        $display("--------------------------------");
+
+        $monitor(" %b  %b  |  %b  %b  %b  %b | %b",
+                 S1, S0, I0, I1, I2, I3, Y);
+
+        // Input values
+        I0 = 0;
+        I1 = 1;
+        I2 = 1;
+        I3 = 0;
+
+        // Select I0
+        S1 = 0;
+        S0 = 0;
+        #10;
+
+        // Select I1
+        S1 = 0;
+        S0 = 1;
+        #10;
+
+        // Select I2
+        S1 = 1;
+        S0 = 0;
+        #10;
+
+        // Select I3
+        S1 = 1;
+        S0 = 1;
+        #10;
+
+        $display("--------------------------------");
+        $display("Simulation completed.");
+        $finish;
+
+    end
+
+endmodule
