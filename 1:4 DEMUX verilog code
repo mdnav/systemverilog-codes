@@ -1,0 +1,18 @@
+// demux_1to4.v
+
+module demux_1to4 (
+    input D,
+    input S0,
+    input S1,
+    output Y0,
+    output Y1,
+    output Y2,
+    output Y3
+);
+
+    assign Y0 = D & ~S1 & ~S0;
+    assign Y1 = D & ~S1 &  S0;
+    assign Y2 = D &  S1 & ~S0;
+    assign Y3 = D &  S1 &  S0;
+
+endmodule
