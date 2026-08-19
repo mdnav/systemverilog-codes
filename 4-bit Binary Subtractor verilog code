@@ -1,0 +1,66 @@
+// binary_subtractor_4bit.v
+
+module full_subtractor (
+    input A,
+    input B,
+    input Bin,
+    output Diff,
+    output Bout
+);
+
+    assign Diff = A ^ B ^ Bin;
+
+    assign Bout = (~A & B) |
+                  (~A & Bin) |
+                  (B & Bin);
+
+endmodule
+
+
+module binary_subtractor_4bit (
+    input [3:0] A,
+    input [3:0] B,
+    input Bin,
+    output [3:0] Diff,
+    output Bout
+);
+
+    wire B1, B2, B3;
+
+    // Bit 0
+    full_subtractor FS0 (
+        .A(A[0]),
+        .B(B[0]),
+        .Bin(Bin),
+        .Diff(Diff[0]),
+        .Bout(B1)
+    );
+
+    // Bit 1
+    full_subtractor FS1 (
+        .A(A[1]),
+        .B(B[1]),
+        .Bin(B1),
+        .Diff(Diff[1]),
+        .Bout(B2)
+    );
+
+    // Bit 2
+    full_subtractor FS2 (
+        .A(A[2]),
+        .B(B[2]),
+        .Bin(B2),
+        .Diff(Diff[2]),
+        .Bout(B3)
+    );
+
+    // Bit 3
+    full_subtractor FS3 (
+        .A(A[3]),
+        .B(B[3]),
+        .Bin(B3),
+        .Diff(Diff[3]),
+        .Bout(Bout)
+    );
+
+endmodule
