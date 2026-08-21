@@ -1,0 +1,62 @@
+// tb_decoder_3to8.v
+
+`timescale 1ns/1ps
+
+module tb_decoder_3to8;
+
+    reg [2:0] A;
+    wire [7:0] Y;
+
+    // Instantiate Decoder
+    decoder_3to8 DUT (
+        .A(A),
+        .Y(Y)
+    );
+
+    initial begin
+
+        $display("--------------------------------");
+        $display(" Input A | Output Y");
+        $display("--------------------------------");
+
+        $monitor("   %b    |  %b", A, Y);
+
+        // Input 000
+        A = 3'b000;
+        #10;
+
+        // Input 001
+        A = 3'b001;
+        #10;
+
+        // Input 010
+        A = 3'b010;
+        #10;
+
+        // Input 011
+        A = 3'b011;
+        #10;
+
+        // Input 100
+        A = 3'b100;
+        #10;
+
+        // Input 101
+        A = 3'b101;
+        #10;
+
+        // Input 110
+        A = 3'b110;
+        #10;
+
+        // Input 111
+        A = 3'b111;
+        #10;
+
+        $display("--------------------------------");
+        $display("Simulation completed.");
+        $finish;
+
+    end
+
+endmodule
