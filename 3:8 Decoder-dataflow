@@ -1,0 +1,19 @@
+// decoder_3to8_dataflow.v
+
+module decoder_3to8 (
+    input A2,
+    input A1,
+    input A0,
+    output [7:0] Y
+);
+
+    assign Y[0] = ~A2 & ~A1 & ~A0;
+    assign Y[1] = ~A2 & ~A1 &  A0;
+    assign Y[2] = ~A2 &  A1 & ~A0;
+    assign Y[3] = ~A2 &  A1 &  A0;
+    assign Y[4] =  A2 & ~A1 & ~A0;
+    assign Y[5] =  A2 & ~A1 &  A0;
+    assign Y[6] =  A2 &  A1 & ~A0;
+    assign Y[7] =  A2 &  A1 &  A0;
+
+endmodule
