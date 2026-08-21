@@ -1,0 +1,62 @@
+// tb_encoder_8to3.v
+
+`timescale 1ns/1ps
+
+module tb_encoder_8to3;
+
+    reg [7:0] D;
+    wire [2:0] Y;
+
+    // Instantiate Encoder
+    encoder_8to3 DUT (
+        .D(D),
+        .Y(Y)
+    );
+
+    initial begin
+
+        $display("--------------------------------");
+        $display("    Input D    | Output Y");
+        $display("--------------------------------");
+
+        $monitor("    %b    |    %b", D, Y);
+
+        // D0 active
+        D = 8'b00000001;
+        #10;
+
+        // D1 active
+        D = 8'b00000010;
+        #10;
+
+        // D2 active
+        D = 8'b00000100;
+        #10;
+
+        // D3 active
+        D = 8'b00001000;
+        #10;
+
+        // D4 active
+        D = 8'b00010000;
+        #10;
+
+        // D5 active
+        D = 8'b00100000;
+        #10;
+
+        // D6 active
+        D = 8'b01000000;
+        #10;
+
+        // D7 active
+        D = 8'b10000000;
+        #10;
+
+        $display("--------------------------------");
+        $display("Simulation completed.");
+        $finish;
+
+    end
+
+endmodule
