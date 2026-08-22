@@ -1,0 +1,19 @@
+// d_flip_flop_reset.v
+
+module d_flip_flop (
+    input D,
+    input CLK,
+    input RESET,
+    output reg Q
+);
+
+    always @(posedge CLK) begin
+
+        if (RESET)
+            Q <= 0;
+        else
+            Q <= D;
+
+    end
+
+endmodule
