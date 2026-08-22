@@ -1,0 +1,71 @@
+// tb_comparator_4bit.v
+
+`timescale 1ns/1ps
+
+module tb_comparator_4bit;
+
+    reg [3:0] A;
+    reg [3:0] B;
+
+    wire A_greater_B;
+    wire A_equal_B;
+    wire A_less_B;
+
+    // Instantiate Comparator
+    comparator_4bit DUT (
+        .A(A),
+        .B(B),
+        .A_greater_B(A_greater_B),
+        .A_equal_B(A_equal_B),
+        .A_less_B(A_less_B)
+    );
+
+    initial begin
+
+        $display("-----------------------------------------------");
+        $display("    A       B   | A>B  A=B  A<B");
+        $display("-----------------------------------------------");
+
+        $monitor("   %b     %b  |  %b    %b    %b",
+                 A, B,
+                 A_greater_B,
+                 A_equal_B,
+                 A_less_B);
+
+        // Test 1: A = B
+        A = 4'b0101;
+        B = 4'b0101;
+        #10;
+
+        // Test 2: A > B
+        A = 4'b1001;
+        B = 4'b0101;
+        #10;
+
+        // Test 3: A < B
+        A = 4'b0011;
+        B = 4'b0110;
+        #10;
+
+        // Test 4: A > B
+        A = 4'b1111;
+        B = 4'b0001;
+        #10;
+
+        // Test 5: A < B
+        A = 4'b0010;
+        B = 4'b1010;
+        #10;
+
+        // Test 6: A = B
+        A = 4'b1111;
+        B = 4'b1111;
+        #10;
+
+        $display("-----------------------------------------------");
+        $display("Simulation completed.");
+        $finish;
+
+    end
+
+endmodule
