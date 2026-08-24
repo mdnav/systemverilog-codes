@@ -1,0 +1,68 @@
+// tb_t_flip_flop.v
+
+`timescale 1ns/1ps
+
+module tb_t_flip_flop;
+
+    reg T;
+    reg CLK;
+
+    wire Q;
+
+    // Instantiate T Flip-Flop
+    t_flip_flop DUT (
+        .T(T),
+        .CLK(CLK),
+        .Q(Q)
+    );
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("--------------------------------");
+        $display(" Time | CLK | T | Q");
+        $display("--------------------------------");
+
+        $monitor(" %4t |  %b  | %b | %b",
+                 $time, CLK, T, Q);
+
+        // Initial values
+        CLK = 0;
+        T = 0;
+
+        // T = 0 → No Change
+        #10;
+        T = 0;
+
+        // T = 1 → Toggle
+        #10;
+        T = 1;
+
+        // T = 1 → Toggle
+        #10;
+        T = 1;
+
+        // T = 1 → Toggle
+        #10;
+        T = 1;
+
+        // T = 0 → No Change
+        #10;
+        T = 0;
+
+        // T = 1 → Toggle
+        #10;
+        T = 1;
+
+        #10;
+
+        $display("--------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
