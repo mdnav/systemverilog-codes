@@ -1,0 +1,82 @@
+// tb_jk_flip_flop.v
+
+`timescale 1ns/1ps
+
+module tb_jk_flip_flop;
+
+    reg J;
+    reg K;
+    reg CLK;
+
+    wire Q;
+
+    // Instantiate JK Flip-Flop
+    jk_flip_flop DUT (
+        .J(J),
+        .K(K),
+        .CLK(CLK),
+        .Q(Q)
+    );
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("------------------------------------");
+        $display(" Time | CLK | J K | Q");
+        $display("------------------------------------");
+
+        $monitor(" %4t |  %b  | %b %b | %b",
+                 $time, CLK, J, K, Q);
+
+        // Initial values
+        CLK = 0;
+        J = 0;
+        K = 0;
+
+        // 00 → No Change
+        #10;
+        J = 0;
+        K = 0;
+
+        // 10 → Set
+        #10;
+        J = 1;
+        K = 0;
+
+        // 00 → No Change
+        #10;
+        J = 0;
+        K = 0;
+
+        // 01 → Reset
+        #10;
+        J = 0;
+        K = 1;
+
+        // 11 → Toggle
+        #10;
+        J = 1;
+        K = 1;
+
+        // 11 → Toggle again
+        #10;
+        J = 1;
+        K = 1;
+
+        // 00 → No Change
+        #10;
+        J = 0;
+        K = 0;
+
+        #10;
+
+        $display("------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
