@@ -1,0 +1,18 @@
+// t_flip_flop.v
+
+module t_flip_flop (
+    input T,
+    input CLK,
+    output reg Q
+);
+
+    always @(posedge CLK) begin
+
+        if (T)
+            Q <= ~Q;       // Toggle
+        else
+            Q <= Q;        // No change
+
+    end
+
+endmodule
