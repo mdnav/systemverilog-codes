@@ -1,0 +1,63 @@
+// up_counter_using_tff.v
+
+module t_flip_flop (
+    input T,
+    input CLK,
+    input RESET,
+    output reg Q
+);
+
+    always @(posedge CLK) begin
+
+        if (RESET)
+            Q <= 1'b0;
+
+        else if (T)
+            Q <= ~Q;
+
+    end
+
+endmodule
+
+
+module up_counter_4bit (
+    input CLK,
+    input RESET,
+    output [3:0] Q
+);
+
+    wire T1, T2, T3;
+
+    assign T1 = Q[0];
+    assign T2 = Q[0] & Q[1];
+    assign T3 = Q[0] & Q[1] & Q[2];
+
+    t_flip_flop FF0 (
+        .T(1'b1),
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q[0])
+    );
+
+    t_flip_flop FF1 (
+        .T(T1),
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q[1])
+    );
+
+    t_flip_flop FF2 (
+        .T(T2),
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q[2])
+    );
+
+    t_flip_flop FF3 (
+        .T(T3),
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q[3])
+    );
+
+endmodule
