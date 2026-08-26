@@ -1,0 +1,64 @@
+// tb_up_down_counter_4bit.v
+
+`timescale 1ns/1ps
+
+module tb_up_down_counter_4bit;
+
+    reg CLK;
+    reg RESET;
+    reg MODE;
+
+    wire [3:0] Q;
+
+    // Instantiate Up/Down Counter
+    up_down_counter_4bit DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .MODE(MODE),
+        .Q(Q)
+    );
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("--------------------------------------------");
+        $display(" Time | CLK | RESET | MODE | Q");
+        $display("--------------------------------------------");
+
+        $monitor(" %4t |  %b  |   %b   |  %b   | %b",
+                 $time, CLK, RESET, MODE, Q);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+        MODE = 1;
+
+        // Reset counter
+        #10;
+
+        // Start counting UP
+        RESET = 0;
+        MODE = 1;
+
+        #50;
+
+        // Change direction to DOWN
+        MODE = 0;
+
+        #50;
+
+        // Change direction back to UP
+        MODE = 1;
+
+        #50;
+
+        $display("--------------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
