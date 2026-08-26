@@ -1,0 +1,23 @@
+// shift_register_4bit.v
+
+module shift_register_4bit (
+    input CLK,
+    input RESET,
+    input Serial_In,
+    output Serial_Out,
+    output reg [3:0] Q
+);
+
+    always @(posedge CLK) begin
+
+        if (RESET)
+            Q <= 4'b0000;
+
+        else
+            Q <= {Q[2:0], Serial_In};
+
+    end
+
+    assign Serial_Out = Q[3];
+
+endmodule
