@@ -1,0 +1,23 @@
+// up_down_counter_4bit.v
+
+module up_down_counter_4bit (
+    input CLK,
+    input RESET,
+    input MODE,
+    output reg [3:0] Q
+);
+
+    always @(posedge CLK) begin
+
+        if (RESET)
+            Q <= 4'b0000;
+
+        else if (MODE)
+            Q <= Q + 1'b1;    // Count Up
+
+        else
+            Q <= Q - 1'b1;    // Count Down
+
+    end
+
+endmodule
