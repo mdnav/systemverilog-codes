@@ -1,0 +1,28 @@
+// piso_shift_register_4bit.v
+
+module piso_shift_register_4bit (
+    input CLK,
+    input RESET,
+    input LOAD,
+    input [3:0] Parallel_In,
+    output Serial_Out
+);
+
+    reg [3:0] Q;
+
+    always @(posedge CLK) begin
+
+        if (RESET)
+            Q <= 4'b0000;
+
+        else if (LOAD)
+            Q <= Parallel_In;
+
+        else
+            Q <= {Q[2:0], 1'b0};
+
+    end
+
+    assign Serial_Out = Q[3];
+
+endmodule
