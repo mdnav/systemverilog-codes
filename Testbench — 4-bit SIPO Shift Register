@@ -1,0 +1,65 @@
+// tb_sipo_shift_register_4bit.v
+
+`timescale 1ns/1ps
+
+module tb_sipo_shift_register_4bit;
+
+    reg CLK;
+    reg RESET;
+    reg Serial_In;
+
+    wire [3:0] Q;
+
+    // Instantiate SIPO Shift Register
+    sipo_shift_register_4bit DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .Serial_In(Serial_In),
+        .Q(Q)
+    );
+
+    // Generate clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("--------------------------------------");
+        $display(" Time | CLK | RESET | Serial_In | Q");
+        $display("--------------------------------------");
+
+        $monitor(" %4t |  %b  |   %b   |     %b     | %b",
+                 $time, CLK, RESET, Serial_In, Q);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+        Serial_In = 0;
+
+        // Reset
+        #10;
+        RESET = 0;
+
+        // Input sequence: 1
+        Serial_In = 1;
+        #10;
+
+        // Input sequence: 0
+        Serial_In = 0;
+        #10;
+
+        // Input sequence: 1
+        Serial_In = 1;
+        #10;
+
+        // Input sequence: 1
+        Serial_In = 1;
+        #10;
+
+        $display("--------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
