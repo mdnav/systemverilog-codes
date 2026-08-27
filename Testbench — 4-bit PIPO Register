@@ -1,0 +1,66 @@
+// tb_pipo_register_4bit.v
+
+`timescale 1ns/1ps
+
+module tb_pipo_register_4bit;
+
+    reg CLK;
+    reg RESET;
+    reg [3:0] Parallel_In;
+
+    wire [3:0] Q;
+
+    // Instantiate PIPO Register
+    pipo_register_4bit DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .Parallel_In(Parallel_In),
+        .Q(Q)
+    );
+
+    // Generate clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("----------------------------------------------");
+        $display(" Time | CLK | RESET | Parallel_In | Q");
+        $display("----------------------------------------------");
+
+        $monitor(" %4t |  %b  |   %b   |    %b      | %b",
+                 $time, CLK, RESET, Parallel_In, Q);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+        Parallel_In = 4'b0000;
+
+        // Reset
+        #10;
+
+        RESET = 0;
+
+        // Load first parallel data
+        Parallel_In = 4'b1011;
+        #10;
+
+        // Load second parallel data
+        Parallel_In = 4'b0101;
+        #10;
+
+        // Load third parallel data
+        Parallel_In = 4'b1110;
+        #10;
+
+        // Load fourth parallel data
+        Parallel_In = 4'b0011;
+        #10;
+
+        $display("----------------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
