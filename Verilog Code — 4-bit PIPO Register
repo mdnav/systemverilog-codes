@@ -1,0 +1,20 @@
+// pipo_register_4bit.v
+
+module pipo_register_4bit (
+    input CLK,
+    input RESET,
+    input [3:0] Parallel_In,
+    output reg [3:0] Q
+);
+
+    always @(posedge CLK) begin
+
+        if (RESET)
+            Q <= 4'b0000;
+
+        else
+            Q <= Parallel_In;
+
+    end
+
+endmodule
