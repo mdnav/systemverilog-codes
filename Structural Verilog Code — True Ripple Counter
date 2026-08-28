@@ -1,0 +1,53 @@
+// asynchronous_counter_4bit.v
+
+module t_flip_flop (
+    input CLK,
+    input RESET,
+    output reg Q
+);
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            Q <= 1'b0;
+        else
+            Q <= ~Q;
+    end
+
+endmodule
+
+
+module asynchronous_counter_4bit (
+    input CLK,
+    input RESET,
+    output [3:0] Q
+);
+
+    // First flip-flop receives external clock
+    t_flip_flop FF0 (
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q[0])
+    );
+
+    // Each next flip-flop is clocked
+    // by the previous flip-flop output
+
+    t_flip_flop FF1 (
+        .CLK(Q[0]),
+        .RESET(RESET),
+        .Q(Q[1])
+    );
+
+    t_flip_flop FF2 (
+        .CLK(Q[1]),
+        .RESET(RESET),
+        .Q(Q[2])
+    );
+
+    t_flip_flop FF3 (
+        .CLK(Q[2]),
+        .RESET(RESET),
+        .Q(Q[3])
+    );
+
+endmodule
