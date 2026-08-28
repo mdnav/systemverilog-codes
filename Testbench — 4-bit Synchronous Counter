@@ -1,0 +1,52 @@
+// tb_synchronous_counter_4bit.v
+
+`timescale 1ns/1ps
+
+module tb_synchronous_counter_4bit;
+
+    reg CLK;
+    reg RESET;
+
+    wire [3:0] Q;
+
+    // Instantiate Synchronous Counter
+    synchronous_counter_4bit DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q)
+    );
+
+    // Generate clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("--------------------------------");
+        $display(" Time | CLK | RESET | Q");
+        $display("--------------------------------");
+
+        // Monitor changes
+        $monitor(" %4t |  %b  |   %b   | %b",
+                 $time, CLK, RESET, Q);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+
+        // Keep reset active
+        #10;
+
+        // Release reset
+        RESET = 0;
+
+        // Allow counter to run
+        #200;
+
+        $display("--------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
