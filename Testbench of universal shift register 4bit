@@ -1,0 +1,107 @@
+// tb_universal_shift_register_4bit.v
+
+`timescale 1ns/1ps
+
+module tb_universal_shift_register_4bit;
+
+    reg CLK;
+    reg RESET;
+    reg [1:0] MODE;
+
+    reg Shift_Right_In;
+    reg Shift_Left_In;
+
+    reg [3:0] Parallel_In;
+
+    wire [3:0] Q;
+
+
+    // Instantiate Universal Shift Register
+    universal_shift_register_4bit DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .MODE(MODE),
+        .Shift_Right_In(Shift_Right_In),
+        .Shift_Left_In(Shift_Left_In),
+        .Parallel_In(Parallel_In),
+        .Q(Q)
+    );
+
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+
+    initial begin
+
+        $display("---------------------------------------------------------");
+        $display("Time | Reset | Mode | SR | SL | Parallel_In | Q");
+        $display("---------------------------------------------------------");
+
+        $monitor("%4t |   %b   |  %b  | %b  | %b  |    %b     | %b",
+                 $time, RESET, MODE,
+                 Shift_Right_In, Shift_Left_In,
+                 Parallel_In, Q);
+
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+        MODE = 2'b00;
+        Shift_Right_In = 0;
+        Shift_Left_In = 0;
+        Parallel_In = 4'b0000;
+
+
+        // Reset
+        #10;
+        RESET = 0;
+
+
+        // Parallel Load: MODE = 11
+        MODE = 2'b11;
+        Parallel_In = 4'b1010;
+
+        #10;
+
+
+        // Hold: MODE = 00
+        MODE = 2'b00;
+
+        #10;
+
+
+        // Shift Right: MODE = 01
+        MODE = 2'b01;
+        Shift_Right_In = 1;
+
+        #10;
+
+
+        // Shift Right again
+        Shift_Right_In = 0;
+
+        #10;
+
+
+        // Shift Left: MODE = 10
+        MODE = 2'b10;
+        Shift_Left_In = 1;
+
+        #10;
+
+
+        // Shift Left again
+        Shift_Left_In = 0;
+
+        #10;
+
+
+        $display("---------------------------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
