@@ -1,0 +1,39 @@
+// synchronous_counter_using_tff.v
+
+module synchronous_counter_4bit (
+    input CLK,
+    input RESET,
+    output [3:0] Q
+);
+
+    // All flip-flops use the SAME clock
+
+    t_flip_flop FF0 (
+        .T(1'b1),
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q[0])
+    );
+
+    t_flip_flop FF1 (
+        .T(Q[0]),
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q[1])
+    );
+
+    t_flip_flop FF2 (
+        .T(Q[0] & Q[1]),
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q[2])
+    );
+
+    t_flip_flop FF3 (
+        .T(Q[0] & Q[1] & Q[2]),
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q[3])
+    );
+
+endmodule
