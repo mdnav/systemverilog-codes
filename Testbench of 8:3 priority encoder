@@ -1,0 +1,68 @@
+// tb_priority_encoder_8to3.v
+
+`timescale 1ns/1ps
+
+module tb_priority_encoder_8to3;
+
+    reg [7:0] D;
+
+    wire [2:0] Y;
+    wire Valid;
+
+
+    // Instantiate Priority Encoder
+    priority_encoder_8to3 DUT (
+        .D(D),
+        .Y(Y),
+        .Valid(Valid)
+    );
+
+
+    initial begin
+
+        $display("-----------------------------------");
+        $display("Input D | Output Y | Valid");
+        $display("-----------------------------------");
+
+        $monitor("%b |    %b     |   %b",
+                 D, Y, Valid);
+
+
+        // No input active
+        D = 8'b00000000;
+        #10;
+
+        // D0 active
+        D = 8'b00000001;
+        #10;
+
+        // D3 active
+        D = 8'b00001000;
+        #10;
+
+        // D5 active
+        D = 8'b00100000;
+        #10;
+
+        // D7 active
+        D = 8'b10000000;
+        #10;
+
+        // Multiple inputs active
+        // D7 has highest priority
+        D = 8'b10101010;
+        #10;
+
+        // Multiple inputs active
+        // D6 has highest priority
+        D = 8'b01010101;
+        #10;
+
+        $display("-----------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
