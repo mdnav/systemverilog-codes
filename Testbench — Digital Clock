@@ -1,0 +1,53 @@
+// tb_digital_clock.v
+
+`timescale 1ns/1ps
+
+module tb_digital_clock;
+
+    reg CLK;
+    reg RESET;
+
+    wire [5:0] HOURS;
+    wire [5:0] MINUTES;
+    wire [5:0] SECONDS;
+
+    // Instantiate Digital Clock
+    digital_clock DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .HOURS(HOURS),
+        .MINUTES(MINUTES),
+        .SECONDS(SECONDS)
+    );
+
+    // Generate clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("----------------------------------------");
+        $display("Time | HOURS | MINUTES | SECONDS");
+        $display("----------------------------------------");
+
+        $monitor("%4t |  %2d   |   %2d    |   %2d",
+                 $time, HOURS, MINUTES, SECONDS);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+
+        // Apply Reset
+        #10;
+        RESET = 0;
+
+        // Run simulation
+        #100;
+
+        $display("----------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
