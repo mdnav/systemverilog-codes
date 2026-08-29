@@ -1,0 +1,31 @@
+// frequency_divider.v
+
+module frequency_divider #(
+    parameter DIVISOR = 10
+)(
+    input CLK,
+    input RESET,
+    output reg CLK_OUT
+);
+
+    integer count;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            count <= 0;
+            CLK_OUT <= 0;
+        end
+
+        else if (count == (DIVISOR/2 - 1)) begin
+            count <= 0;
+            CLK_OUT <= ~CLK_OUT;
+        end
+
+        else begin
+            count <= count + 1;
+        end
+
+    end
+
+endmodule
