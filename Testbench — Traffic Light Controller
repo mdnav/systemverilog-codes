@@ -1,0 +1,53 @@
+// tb_traffic_light_controller.v
+
+`timescale 1ns/1ps
+
+module tb_traffic_light_controller;
+
+    reg CLK;
+    reg RESET;
+
+    wire RED;
+    wire YELLOW;
+    wire GREEN;
+
+    // Instantiate Traffic Light Controller
+    traffic_light_controller DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .RED(RED),
+        .YELLOW(YELLOW),
+        .GREEN(GREEN)
+    );
+
+    // Generate clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("------------------------------------------------");
+        $display("Time | RESET | RED | YELLOW | GREEN");
+        $display("------------------------------------------------");
+
+        $monitor("%4t |   %b   |  %b  |    %b    |   %b",
+                 $time, RESET, RED, YELLOW, GREEN);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+
+        // Apply Reset
+        #10;
+        RESET = 0;
+
+        // Run simulation
+        #100;
+
+        $display("------------------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
