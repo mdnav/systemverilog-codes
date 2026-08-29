@@ -1,0 +1,60 @@
+// tb_moore_sequence_detector.v
+
+`timescale 1ns/1ps
+
+module tb_moore_sequence_detector;
+
+    reg CLK;
+    reg RESET;
+    reg X;
+
+    wire DETECT;
+
+    // Instantiate Moore FSM
+    moore_sequence_detector DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .X(X),
+        .DETECT(DETECT)
+    );
+
+    // Generate clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("-----------------------------------");
+        $display("Time | RESET | X | DETECT");
+        $display("-----------------------------------");
+
+        $monitor("%4t |   %b   | %b |    %b",
+                 $time, RESET, X, DETECT);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+        X = 0;
+
+        // Reset
+        #10;
+        RESET = 0;
+
+        // Input sequence: 1 0 1
+        #10 X = 1;
+        #10 X = 0;
+        #10 X = 1;   // Sequence 101 detected
+
+        // Continue testing
+        #10 X = 0;
+        #10 X = 1;   // Detect again if applicable
+
+        #20;
+
+        $display("-----------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
