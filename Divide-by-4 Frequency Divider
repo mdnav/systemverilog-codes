@@ -1,0 +1,23 @@
+// frequency_divider_by_4.v
+
+module frequency_divider_by_4 (
+    input CLK,
+    input RESET,
+    output CLK_OUT
+);
+
+    reg [1:0] count;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET)
+            count <= 2'b00;
+
+        else
+            count <= count + 1'b1;
+
+    end
+
+    assign CLK_OUT = count[1];
+
+endmodule
