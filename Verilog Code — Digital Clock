@@ -1,0 +1,51 @@
+// digital_clock.v
+
+module digital_clock (
+    input CLK,
+    input RESET,
+    output reg [5:0] HOURS,
+    output reg [5:0] MINUTES,
+    output reg [5:0] SECONDS
+);
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            HOURS   <= 6'd0;
+            MINUTES <= 6'd0;
+            SECONDS <= 6'd0;
+        end
+
+        else begin
+
+            // Increment seconds
+            if (SECONDS == 6'd59) begin
+                SECONDS <= 6'd0;
+
+                // Increment minutes
+                if (MINUTES == 6'd59) begin
+                    MINUTES <= 6'd0;
+
+                    // Increment hours
+                    if (HOURS == 6'd23)
+                        HOURS <= 6'd0;
+                    else
+                        HOURS <= HOURS + 1'b1;
+
+                end
+
+                else begin
+                    MINUTES <= MINUTES + 1'b1;
+                end
+
+            end
+
+            else begin
+                SECONDS <= SECONDS + 1'b1;
+            end
+
+        end
+
+    end
+
+endmodule
