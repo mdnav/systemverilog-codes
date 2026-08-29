@@ -1,0 +1,61 @@
+// tb_mealy_sequence_detector.v
+
+`timescale 1ns/1ps
+
+module tb_mealy_sequence_detector;
+
+    reg CLK;
+    reg RESET;
+    reg X;
+
+    wire DETECT;
+
+    // Instantiate Mealy FSM
+    mealy_sequence_detector DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .X(X),
+        .DETECT(DETECT)
+    );
+
+    // Clock Generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("-----------------------------------");
+        $display("Time | RESET | X | DETECT");
+        $display("-----------------------------------");
+
+        $monitor("%4t |   %b   | %b |    %b",
+                 $time, RESET, X, DETECT);
+
+        // Initialize
+        CLK = 0;
+        RESET = 1;
+        X = 0;
+
+        // Reset
+        #10;
+        RESET = 0;
+
+        // Input sequence: 1 0 1
+        #10 X = 1;
+        #10 X = 0;
+        #10 X = 1;   // DETECT = 1
+
+        // More inputs
+        #10 X = 1;
+        #10 X = 0;
+        #10 X = 1;   // DETECT = 1
+
+        #20;
+
+        $display("-----------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
