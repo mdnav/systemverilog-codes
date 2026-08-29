@@ -1,0 +1,82 @@
+// tb_vending_machine.v
+
+`timescale 1ns/1ps
+
+module tb_vending_machine;
+
+    reg CLK;
+    reg RESET;
+    reg COIN_5;
+    reg COIN_10;
+
+    wire DISPENSE;
+
+    // Instantiate Vending Machine
+    vending_machine DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .COIN_5(COIN_5),
+        .COIN_10(COIN_10),
+        .DISPENSE(DISPENSE)
+    );
+
+    // Clock Generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("----------------------------------------------");
+        $display("Time | RESET | ₹5 | ₹10 | DISPENSE");
+        $display("----------------------------------------------");
+
+        $monitor("%4t |   %b   |  %b |  %b  |    %b",
+                 $time, RESET, COIN_5, COIN_10, DISPENSE);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+        COIN_5 = 0;
+        COIN_10 = 0;
+
+        // Reset
+        #10;
+        RESET = 0;
+
+        // Insert ₹5
+        #10;
+        COIN_5 = 1;
+
+        #10;
+        COIN_5 = 0;
+
+        // Insert ₹10 -> Product Dispensed
+        #10;
+        COIN_10 = 1;
+
+        #10;
+        COIN_10 = 0;
+
+        // Wait
+        #20;
+
+        // Insert ₹10
+        COIN_10 = 1;
+        #10;
+        COIN_10 = 0;
+
+        // Insert ₹5 -> Product Dispensed
+        #10;
+        COIN_5 = 1;
+        #10;
+        COIN_5 = 0;
+
+        #20;
+
+        $display("----------------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
