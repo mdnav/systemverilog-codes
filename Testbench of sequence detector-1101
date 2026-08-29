@@ -1,0 +1,64 @@
+// tb_sequence_detector_1101.v
+
+`timescale 1ns/1ps
+
+module tb_sequence_detector_1101;
+
+    reg CLK;
+    reg RESET;
+    reg X;
+
+    wire DETECT;
+
+    // Instantiate Sequence Detector
+    sequence_detector_1101 DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .X(X),
+        .DETECT(DETECT)
+    );
+
+    // Generate Clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("----------------------------------------");
+        $display("Time | RESET | X | DETECT");
+        $display("----------------------------------------");
+
+        $monitor("%4t |   %b   | %b |    %b",
+                 $time, RESET, X, DETECT);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+        X = 0;
+
+        // Reset
+        #10;
+        RESET = 0;
+
+        // Input sequence: 1 1 0 1
+        // First detection
+        #10 X = 1;
+        #10 X = 1;
+        #10 X = 0;
+        #10 X = 1;
+
+        // Continue with another sequence
+        #10 X = 1;
+        #10 X = 1;
+        #10 X = 0;
+        #10 X = 1;
+
+        #20;
+
+        $display("----------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
