@@ -1,0 +1,68 @@
+// mealy_sequence_detector.v
+
+module mealy_sequence_detector (
+    input CLK,
+    input RESET,
+    input X,
+    output reg DETECT
+);
+
+    // State definitions
+    parameter S0 = 2'b00;
+    parameter S1 = 2'b01;
+    parameter S2 = 2'b10;
+
+    reg [1:0] state, next_state;
+
+    // State Register
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            state <= S0;
+        else
+            state <= next_state;
+    end
+
+    // Next-State and Output Logic
+    always @(*) begin
+
+        // Default values
+        next_state = state;
+        DETECT = 0;
+
+        case (state)
+
+            // Initial State
+            S0: begin
+                if (X)
+                    next_state = S1;
+                else
+                    next_state = S0;
+            end
+
+            // Received: 1
+            S1: begin
+                if (X)
+                    next_state = S1;
+                else
+                    next_state = S2;
+            end
+
+            // Received: 10
+            S2: begin
+                if (X) begin
+                    next_state = S1;
+                    DETECT = 1;   // Sequence 101 detected
+                end
+                else
+                    next_state = S0;
+            end
+
+            default: begin
+                next_state = S0;
+                DETECT = 0;
+            end
+
+        endcase
+    end
+
+endmodule
