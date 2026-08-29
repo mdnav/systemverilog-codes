@@ -1,0 +1,80 @@
+// vending_machine.v
+
+module vending_machine (
+    input CLK,
+    input RESET,
+    input COIN_5,
+    input COIN_10,
+    output reg DISPENSE
+);
+
+    // State definitions
+    parameter S0  = 2'b00;   // ₹0
+    parameter S5  = 2'b01;   // ₹5
+    parameter S10 = 2'b10;   // ₹10
+
+    reg [1:0] state, next_state;
+
+    // State Register
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            state <= S0;
+        else
+            state <= next_state;
+    end
+
+    // Next State and Output Logic
+    always @(*) begin
+
+        // Default values
+        next_state = state;
+        DISPENSE = 1'b0;
+
+        case (state)
+
+            // ₹0 inserted
+            S0: begin
+                if (COIN_10)
+                    next_state = S10;
+                else if (COIN_5)
+                    next_state = S5;
+                else
+                    next_state = S0;
+            end
+
+            // ₹5 inserted
+            S5: begin
+                if (COIN_10) begin
+                    DISPENSE = 1'b1;     // ₹5 + ₹10 = ₹15
+                    next_state = S0;
+                end
+                else if (COIN_5)
+                    next_state = S10;
+                else
+                    next_state = S5;
+            end
+
+            // ₹10 inserted
+            S10: begin
+                if (COIN_5) begin
+                    DISPENSE = 1'b1;     // ₹10 + ₹5 = ₹15
+                    next_state = S0;
+                end
+                else if (COIN_10) begin
+                    DISPENSE = 1'b1;     // ₹10 + ₹10 = ₹20
+                    next_state = S0;
+                end
+                else
+                    next_state = S10;
+            end
+
+            default: begin
+                next_state = S0;
+                DISPENSE = 1'b0;
+            end
+
+        endcase
+
+    end
+
+endmodule
