@@ -1,0 +1,43 @@
+// tb_digital_clock_rollover.v
+
+`timescale 1ns/1ps
+
+module tb_digital_clock_rollover;
+
+    reg CLK;
+    reg RESET;
+
+    wire [5:0] HOURS;
+    wire [5:0] MINUTES;
+    wire [5:0] SECONDS;
+
+    digital_clock DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .HOURS(HOURS),
+        .MINUTES(MINUTES),
+        .SECONDS(SECONDS)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        CLK = 0;
+        RESET = 1;
+
+        #10;
+        RESET = 0;
+
+        // Test minute rollover
+        DUT.HOURS   = 6'd0;
+        DUT.MINUTES = 6'd0;
+        DUT.SECONDS = 6'd58;
+
+        #30;
+
+        $finish;
+
+    end
+
+endmodule
