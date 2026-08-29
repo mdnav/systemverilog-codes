@@ -1,0 +1,19 @@
+// frequency_divider_by_2.v
+
+module frequency_divider_by_2 (
+    input CLK,
+    input RESET,
+    output reg CLK_OUT
+);
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET)
+            CLK_OUT <= 1'b0;
+
+        else
+            CLK_OUT <= ~CLK_OUT;
+
+    end
+
+endmodule
