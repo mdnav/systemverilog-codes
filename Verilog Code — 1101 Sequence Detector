@@ -1,0 +1,78 @@
+// sequence_detector_1101.v
+
+module sequence_detector_1101 (
+    input CLK,
+    input RESET,
+    input X,
+    output reg DETECT
+);
+
+    // State definitions
+    parameter S0 = 2'b00;   // No bits matched
+    parameter S1 = 2'b01;   // Received 1
+    parameter S2 = 2'b10;   // Received 11
+    parameter S3 = 2'b11;   // Received 110
+
+    reg [1:0] state, next_state;
+
+    // State Register
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            state <= S0;
+        else
+            state <= next_state;
+    end
+
+    // Next-State and Output Logic
+    always @(*) begin
+
+        // Default values
+        next_state = state;
+        DETECT = 1'b0;
+
+        case (state)
+
+            // S0: No match
+            S0: begin
+                if (X)
+                    next_state = S1;
+                else
+                    next_state = S0;
+            end
+
+            // S1: Received 1
+            S1: begin
+                if (X)
+                    next_state = S2;
+                else
+                    next_state = S0;
+            end
+
+            // S2: Received 11
+            S2: begin
+                if (X)
+                    next_state = S2;   // Still have 11
+                else
+                    next_state = S3;
+            end
+
+            // S3: Received 110
+            S3: begin
+                if (X) begin
+                    DETECT = 1'b1;     // 1101 detected
+                    next_state = S2;   // Allows overlapping
+                end
+                else
+                    next_state = S0;
+            end
+
+            default: begin
+                next_state = S0;
+                DETECT = 1'b0;
+            end
+
+        endcase
+
+    end
+
+endmodule
