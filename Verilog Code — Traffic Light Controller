@@ -1,0 +1,71 @@
+// traffic_light_controller.v
+
+module traffic_light_controller (
+    input CLK,
+    input RESET,
+    output reg RED,
+    output reg YELLOW,
+    output reg GREEN
+);
+
+    // State definitions
+    parameter RED_STATE    = 2'b00;
+    parameter GREEN_STATE  = 2'b01;
+    parameter YELLOW_STATE = 2'b10;
+
+    reg [1:0] state, next_state;
+
+    // State Register
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            state <= RED_STATE;
+        else
+            state <= next_state;
+    end
+
+    // Next State Logic
+    always @(*) begin
+        case (state)
+
+            RED_STATE:
+                next_state = GREEN_STATE;
+
+            GREEN_STATE:
+                next_state = YELLOW_STATE;
+
+            YELLOW_STATE:
+                next_state = RED_STATE;
+
+            default:
+                next_state = RED_STATE;
+
+        endcase
+    end
+
+    // Output Logic
+    always @(*) begin
+
+        // Default values
+        RED = 0;
+        YELLOW = 0;
+        GREEN = 0;
+
+        case (state)
+
+            RED_STATE:
+                RED = 1;
+
+            GREEN_STATE:
+                GREEN = 1;
+
+            YELLOW_STATE:
+                YELLOW = 1;
+
+            default: begin
+                RED = 1;
+            end
+
+        endcase
+    end
+
+endmodule
