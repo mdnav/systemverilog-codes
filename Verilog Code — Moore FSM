@@ -1,0 +1,83 @@
+// moore_sequence_detector.v
+
+module moore_sequence_detector (
+    input CLK,
+    input RESET,
+    input X,
+    output reg DETECT
+);
+
+    // State definitions
+    parameter S0 = 2'b00;
+    parameter S1 = 2'b01;
+    parameter S2 = 2'b10;
+    parameter S3 = 2'b11;
+
+    reg [1:0] state, next_state;
+
+    // State Register
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            state <= S0;
+        else
+            state <= next_state;
+    end
+
+    // Next State Logic
+    always @(*) begin
+
+        case (state)
+
+            // No valid sequence
+            S0: begin
+                if (X)
+                    next_state = S1;
+                else
+                    next_state = S0;
+            end
+
+            // Received 1
+            S1: begin
+                if (X)
+                    next_state = S1;
+                else
+                    next_state = S2;
+            end
+
+            // Received 10
+            S2: begin
+                if (X)
+                    next_state = S3;
+                else
+                    next_state = S0;
+            end
+
+            // Sequence 101 detected
+            S3: begin
+                if (X)
+                    next_state = S1;
+                else
+                    next_state = S2;
+            end
+
+            default:
+                next_state = S0;
+
+        endcase
+
+    end
+
+
+    // Output Logic
+    always @(*) begin
+
+        case (state)
+
+            S3: DETECT = 1;  // Sequence detected
+            default: DETECT = 0;
+
+        endcase
+
+    end
+
+endmodule
