@@ -1,0 +1,56 @@
+// simple_fsm.v
+
+module simple_fsm (
+    input CLK,
+    input RESET,
+    input START,
+    output reg [1:0] STATE
+);
+
+    // Define states
+    parameter IDLE  = 2'b00;
+    parameter RUN   = 2'b01;
+    parameter STOP  = 2'b10;
+
+    reg [1:0] next_state;
+
+    // State Register
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET)
+            STATE <= IDLE;
+
+        else
+            STATE <= next_state;
+
+    end
+
+
+    // Next State Logic
+    always @(*) begin
+
+        case (STATE)
+
+            IDLE:
+                if (START)
+                    next_state = RUN;
+                else
+                    next_state = IDLE;
+
+            RUN:
+                if (START)
+                    next_state = STOP;
+                else
+                    next_state = RUN;
+
+            STOP:
+                next_state = IDLE;
+
+            default:
+                next_state = IDLE;
+
+        endcase
+
+    end
+
+endmodule
