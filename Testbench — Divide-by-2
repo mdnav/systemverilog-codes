@@ -1,0 +1,43 @@
+// tb_frequency_divider_by_2.v
+
+`timescale 1ns/1ps
+
+module tb_frequency_divider_by_2;
+
+    reg CLK;
+    reg RESET;
+
+    wire CLK_OUT;
+
+    // Instantiate Frequency Divider
+    frequency_divider_by_2 DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .CLK_OUT(CLK_OUT)
+    );
+
+    // Generate input clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        // Initialize
+        CLK = 0;
+        RESET = 1;
+
+        // Monitor
+        $monitor("Time = %0t | CLK = %b | RESET = %b | CLK_OUT = %b",
+                 $time, CLK, RESET, CLK_OUT);
+
+        // Apply reset
+        #10;
+        RESET = 0;
+
+        // Run simulation
+        #100;
+
+        $finish;
+
+    end
+
+endmodule
