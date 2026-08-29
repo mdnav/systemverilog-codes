@@ -1,0 +1,63 @@
+// tb_simple_fsm.v
+
+`timescale 1ns/1ps
+
+module tb_simple_fsm;
+
+    reg CLK;
+    reg RESET;
+    reg START;
+
+    wire [1:0] STATE;
+
+    // Instantiate FSM
+    simple_fsm DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .START(START),
+        .STATE(STATE)
+    );
+
+    // Generate Clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("------------------------------------");
+        $display("Time | RESET | START | STATE");
+        $display("------------------------------------");
+
+        $monitor("%4t |   %b   |   %b   |   %b",
+                 $time, RESET, START, STATE);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+        START = 0;
+
+        // Reset FSM
+        #10;
+        RESET = 0;
+
+        // START = 1
+        #10;
+        START = 1;
+
+        // Keep START high
+        #10;
+        START = 1;
+
+        // Return input to 0
+        #10;
+        START = 0;
+
+        #30;
+
+        $display("------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
