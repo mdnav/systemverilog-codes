@@ -1,0 +1,64 @@
+// tb_elevator_controller.v
+
+`timescale 1ns/1ps
+
+module tb_elevator_controller;
+
+    reg CLK;
+    reg RESET;
+    reg [1:0] DESTINATION;
+
+    wire [1:0] CURRENT_FLOOR;
+    wire MOVING;
+
+    // Instantiate Elevator Controller
+    elevator_controller DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .DESTINATION(DESTINATION),
+        .CURRENT_FLOOR(CURRENT_FLOOR),
+        .MOVING(MOVING)
+    );
+
+    // Generate Clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("------------------------------------------------");
+        $display("Time | RESET | DESTINATION | CURRENT | MOVING");
+        $display("------------------------------------------------");
+
+        $monitor("%4t |   %b   |      %b      |    %b    |   %b",
+                 $time, RESET, DESTINATION,
+                 CURRENT_FLOOR, MOVING);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+        DESTINATION = 2'b00;
+
+        // Apply Reset
+        #10;
+        RESET = 0;
+
+        // Go from Floor 0 to Floor 3
+        DESTINATION = 2'b11;
+        #40;
+
+        // Go from Floor 3 to Floor 1
+        DESTINATION = 2'b01;
+        #40;
+
+        // Go from Floor 1 to Floor 2
+        DESTINATION = 2'b10;
+        #30;
+
+        $display("------------------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
