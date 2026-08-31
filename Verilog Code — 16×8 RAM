@@ -1,0 +1,25 @@
+// ram_16x8.v
+
+module ram_16x8 (
+    input CLK,
+    input WE,              // Write Enable
+    input [3:0] ADDRESS,
+    input [7:0] DATA_IN,
+    output reg [7:0] DATA_OUT
+);
+
+    // 16 locations, each 8 bits wide
+    reg [7:0] memory [0:15];
+
+    // Write operation
+    always @(posedge CLK) begin
+        if (WE)
+            memory[ADDRESS] <= DATA_IN;
+    end
+
+    // Read operation
+    always @(*) begin
+        DATA_OUT = memory[ADDRESS];
+    end
+
+endmodule
