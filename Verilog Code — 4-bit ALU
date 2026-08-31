@@ -1,0 +1,68 @@
+// alu_4bit.v
+
+module alu_4bit (
+    input [3:0] A,
+    input [3:0] B,
+    input [2:0] SELECT,
+    output reg [3:0] RESULT,
+    output reg CARRY
+);
+
+    always @(*) begin
+
+        // Default values
+        RESULT = 4'b0000;
+        CARRY = 1'b0;
+
+        case (SELECT)
+
+            // Addition
+            3'b000: begin
+                {CARRY, RESULT} = A + B;
+            end
+
+            // Subtraction
+            3'b001: begin
+                RESULT = A - B;
+            end
+
+            // AND
+            3'b010: begin
+                RESULT = A & B;
+            end
+
+            // OR
+            3'b011: begin
+                RESULT = A | B;
+            end
+
+            // XOR
+            3'b100: begin
+                RESULT = A ^ B;
+            end
+
+            // NOT A
+            3'b101: begin
+                RESULT = ~A;
+            end
+
+            // Increment A
+            3'b110: begin
+                RESULT = A + 1'b1;
+            end
+
+            // Decrement A
+            3'b111: begin
+                RESULT = A - 1'b1;
+            end
+
+            default: begin
+                RESULT = 4'b0000;
+                CARRY = 1'b0;
+            end
+
+        endcase
+
+    end
+
+endmodule
