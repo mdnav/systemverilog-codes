@@ -1,0 +1,83 @@
+// tb_ram_16x8.v
+
+`timescale 1ns/1ps
+
+module tb_ram_16x8;
+
+    reg CLK;
+    reg WE;
+    reg [3:0] ADDRESS;
+    reg [7:0] DATA_IN;
+
+    wire [7:0] DATA_OUT;
+
+    // Instantiate RAM
+    ram_16x8 DUT (
+        .CLK(CLK),
+        .WE(WE),
+        .ADDRESS(ADDRESS),
+        .DATA_IN(DATA_IN),
+        .DATA_OUT(DATA_OUT)
+    );
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("----------------------------------------------------");
+        $display("Time | WE | ADDRESS | DATA_IN | DATA_OUT");
+        $display("----------------------------------------------------");
+
+        $monitor("%4t | %b  |   %b   |   %b   |   %b",
+                 $time, WE, ADDRESS, DATA_IN, DATA_OUT);
+
+        // Initial values
+        CLK = 0;
+        WE = 0;
+        ADDRESS = 4'b0000;
+        DATA_IN = 8'b00000000;
+
+        // Write 10101010 to address 2
+        #10;
+        WE = 1;
+        ADDRESS = 4'b0010;
+        DATA_IN = 8'b10101010;
+
+        #10;
+
+        // Write 11001100 to address 5
+        ADDRESS = 4'b0101;
+        DATA_IN = 8'b11001100;
+
+        #10;
+
+        // Write 11110000 to address 8
+        ADDRESS = 4'b1000;
+        DATA_IN = 8'b11110000;
+
+        #10;
+
+        // Disable write mode
+        WE = 0;
+
+        // Read address 2
+        ADDRESS = 4'b0010;
+        #10;
+
+        // Read address 5
+        ADDRESS = 4'b0101;
+        #10;
+
+        // Read address 8
+        ADDRESS = 4'b1000;
+        #10;
+
+        $display("----------------------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
