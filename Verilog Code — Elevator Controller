@@ -1,0 +1,41 @@
+// elevator_controller.v
+
+module elevator_controller (
+    input CLK,
+    input RESET,
+    input [1:0] DESTINATION,
+    output reg [1:0] CURRENT_FLOOR,
+    output reg MOVING
+);
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            CURRENT_FLOOR <= 2'b00;
+            MOVING <= 1'b0;
+        end
+
+        else begin
+
+            // Elevator is already at destination
+            if (CURRENT_FLOOR == DESTINATION) begin
+                MOVING <= 1'b0;
+            end
+
+            // Move UP
+            else if (CURRENT_FLOOR < DESTINATION) begin
+                CURRENT_FLOOR <= CURRENT_FLOOR + 1'b1;
+                MOVING <= 1'b1;
+            end
+
+            // Move DOWN
+            else begin
+                CURRENT_FLOOR <= CURRENT_FLOOR - 1'b1;
+                MOVING <= 1'b1;
+            end
+
+        end
+
+    end
+
+endmodule
