@@ -1,0 +1,75 @@
+// tb_alu_4bit.v
+
+`timescale 1ns/1ps
+
+module tb_alu_4bit;
+
+    reg [3:0] A;
+    reg [3:0] B;
+    reg [2:0] SELECT;
+
+    wire [3:0] RESULT;
+    wire CARRY;
+
+    // Instantiate ALU
+    alu_4bit DUT (
+        .A(A),
+        .B(B),
+        .SELECT(SELECT),
+        .RESULT(RESULT),
+        .CARRY(CARRY)
+    );
+
+    initial begin
+
+        $display("------------------------------------------------");
+        $display(" A | B | SELECT | RESULT | CARRY");
+        $display("------------------------------------------------");
+
+        $monitor("%b | %b |   %b    |  %b   |   %b",
+                 A, B, SELECT, RESULT, CARRY);
+
+        // Input values
+        A = 4'b0101;   // 5
+        B = 4'b0011;   // 3
+
+        // Addition: 5 + 3 = 8
+        SELECT = 3'b000;
+        #10;
+
+        // Subtraction: 5 - 3 = 2
+        SELECT = 3'b001;
+        #10;
+
+        // AND
+        SELECT = 3'b010;
+        #10;
+
+        // OR
+        SELECT = 3'b011;
+        #10;
+
+        // XOR
+        SELECT = 3'b100;
+        #10;
+
+        // NOT A
+        SELECT = 3'b101;
+        #10;
+
+        // Increment A
+        SELECT = 3'b110;
+        #10;
+
+        // Decrement A
+        SELECT = 3'b111;
+        #10;
+
+        $display("------------------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
