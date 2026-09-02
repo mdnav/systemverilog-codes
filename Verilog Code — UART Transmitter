@@ -1,0 +1,72 @@
+// uart_transmitter.v
+
+module uart_transmitter (
+    input CLK,
+    input RESET,
+    input START,
+    input [7:0] DATA_IN,
+    output reg TX,
+    output reg BUSY
+);
+
+    reg [3:0] bit_count;
+    reg [7:0] data_buffer;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            TX <= 1'b1;          // UART idle state
+            BUSY <= 1'b0;
+            bit_count <= 4'd0;
+            data_buffer <= 8'd0;
+        end
+
+        else begin
+
+            // Start transmission
+            if (START && !BUSY) begin
+
+                BUSY <= 1'b1;
+                data_buffer <= DATA_IN;
+                bit_count <= 4'd0;
+
+                // Send Start Bit
+                TX <= 1'b0;
+
+            end
+
+            else if (BUSY) begin
+
+                case (bit_count)
+
+                    // Send data bits LSB first
+
+                    4'd0: TX <= data_buffer[0];
+                    4'd1: TX <= data_buffer[1];
+                    4'd2: TX <= data_buffer[2];
+                    4'd3: TX <= data_buffer[3];
+                    4'd4: TX <= data_buffer[4];
+                    4'd5: TX <= data_buffer[5];
+                    4'd6: TX <= data_buffer[6];
+                    4'd7: TX <= data_buffer[7];
+
+                    // Stop Bit
+                    4'd8: TX <= 1'b1;
+
+                    // Transmission complete
+                    4'd9: begin
+                        TX <= 1'b1;
+                        BUSY <= 1'b0;
+                    end
+
+                endcase
+
+                bit_count <= bit_count + 1'b1;
+
+            end
+
+        end
+
+    end
+
+endmodule
