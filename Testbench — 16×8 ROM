@@ -1,0 +1,55 @@
+// tb_rom_16x8.v
+
+`timescale 1ns/1ps
+
+module tb_rom_16x8;
+
+    reg [3:0] ADDRESS;
+    wire [7:0] DATA_OUT;
+
+    // Instantiate ROM
+    rom_16x8 DUT (
+        .ADDRESS(ADDRESS),
+        .DATA_OUT(DATA_OUT)
+    );
+
+    initial begin
+
+        $display("--------------------------------------");
+        $display("Time | ADDRESS | DATA_OUT");
+        $display("--------------------------------------");
+
+        $monitor("%4t |   %b   |   %b",
+                 $time, ADDRESS, DATA_OUT);
+
+        // Test different addresses
+
+        ADDRESS = 4'b0000;
+        #10;
+
+        ADDRESS = 4'b0001;
+        #10;
+
+        ADDRESS = 4'b0010;
+        #10;
+
+        ADDRESS = 4'b0101;
+        #10;
+
+        ADDRESS = 4'b1000;
+        #10;
+
+        ADDRESS = 4'b1010;
+        #10;
+
+        ADDRESS = 4'b1111;
+        #10;
+
+        $display("--------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
