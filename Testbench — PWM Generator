@@ -1,0 +1,65 @@
+// tb_pwm_generator.v
+
+`timescale 1ns/1ps
+
+module tb_pwm_generator;
+
+    reg CLK;
+    reg RESET;
+    reg [7:0] DUTY_CYCLE;
+
+    wire PWM_OUT;
+
+    // Instantiate PWM Generator
+    pwm_generator DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .DUTY_CYCLE(DUTY_CYCLE),
+        .PWM_OUT(PWM_OUT)
+    );
+
+    // Generate Clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("--------------------------------------");
+        $display("Time | DUTY_CYCLE | PWM_OUT");
+        $display("--------------------------------------");
+
+        $monitor("%4t |     %d     |    %b",
+                 $time, DUTY_CYCLE, PWM_OUT);
+
+        // Initialize
+        CLK = 0;
+        RESET = 1;
+        DUTY_CYCLE = 8'd0;
+
+        // Apply Reset
+        #10;
+        RESET = 0;
+
+        // Test 25% duty cycle
+        DUTY_CYCLE = 8'd64;
+        #3000;
+
+        // Test 50% duty cycle
+        DUTY_CYCLE = 8'd128;
+        #3000;
+
+        // Test 75% duty cycle
+        DUTY_CYCLE = 8'd192;
+        #3000;
+
+        // Test 100% duty cycle
+        DUTY_CYCLE = 8'd255;
+        #3000;
+
+        $display("--------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
