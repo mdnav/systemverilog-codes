@@ -1,0 +1,74 @@
+// tb_uart_transmitter.v
+
+`timescale 1ns/1ps
+
+module tb_uart_transmitter;
+
+    reg CLK;
+    reg RESET;
+    reg START;
+    reg [7:0] DATA_IN;
+
+    wire TX;
+    wire BUSY;
+
+    // Instantiate UART Transmitter
+    uart_transmitter DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .START(START),
+        .DATA_IN(DATA_IN),
+        .TX(TX),
+        .BUSY(BUSY)
+    );
+
+    // Generate clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("--------------------------------------------");
+        $display("Time | START | DATA_IN | TX | BUSY");
+        $display("--------------------------------------------");
+
+        $monitor("%4t |   %b   |   %b   | %b  |  %b",
+                 $time, START, DATA_IN, TX, BUSY);
+
+        // Initialize
+        CLK = 0;
+        RESET = 1;
+        START = 0;
+        DATA_IN = 8'b00000000;
+
+        // Reset
+        #10;
+        RESET = 0;
+
+        // Send data
+        #10;
+        DATA_IN = 8'b10101010;
+        START = 1;
+
+        #10;
+        START = 0;
+
+        // Wait for transmission to complete
+        #150;
+
+        // Send another byte
+        DATA_IN = 8'b11001100;
+        START = 1;
+
+        #10;
+        START = 0;
+
+        #150;
+
+        $display("--------------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
