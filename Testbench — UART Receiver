@@ -1,0 +1,70 @@
+// tb_uart_receiver.v
+
+`timescale 1ns/1ps
+
+module tb_uart_receiver;
+
+    reg CLK;
+    reg RESET;
+    reg RX;
+
+    wire [7:0] DATA_OUT;
+    wire DATA_READY;
+
+    // Instantiate UART Receiver
+    uart_receiver DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .RX(RX),
+        .DATA_OUT(DATA_OUT),
+        .DATA_READY(DATA_READY)
+    );
+
+    // Generate Clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("------------------------------------------");
+        $display("Time | RX | DATA_OUT | DATA_READY");
+        $display("------------------------------------------");
+
+        $monitor("%4t | %b  |   %b   |     %b",
+                 $time, RX, DATA_OUT, DATA_READY);
+
+        // Initial values
+        CLK = 0;
+        RESET = 1;
+        RX = 1;
+
+        // Apply Reset
+        #10;
+        RESET = 0;
+
+        // Start Bit
+        #10 RX = 0;
+
+        // Send Data: 10101010 (LSB first)
+
+        #10 RX = 0;   // D0
+        #10 RX = 1;   // D1
+        #10 RX = 0;   // D2
+        #10 RX = 1;   // D3
+        #10 RX = 0;   // D4
+        #10 RX = 1;   // D5
+        #10 RX = 0;   // D6
+        #10 RX = 1;   // D7
+
+        // Stop Bit
+        #10 RX = 1;
+
+        #30;
+
+        $display("------------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
