@@ -1,0 +1,70 @@
+// tb_spi_master.v
+
+`timescale 1ns/1ps
+
+module tb_spi_master;
+
+    reg CLK;
+    reg RESET;
+    reg START;
+
+    reg [7:0] DATA_IN;
+
+    wire SCLK;
+    wire MOSI;
+    wire CS;
+    wire BUSY;
+
+    // Instantiate SPI Master
+    spi_master DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .START(START),
+        .DATA_IN(DATA_IN),
+        .SCLK(SCLK),
+        .MOSI(MOSI),
+        .CS(CS),
+        .BUSY(BUSY)
+    );
+
+    // Generate System Clock
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("------------------------------------------------");
+        $display("Time | START | DATA_IN | CS | SCLK | MOSI | BUSY");
+        $display("------------------------------------------------");
+
+        $monitor("%4t |   %b   |   %b   |  %b |   %b  |   %b  |   %b",
+                 $time, START, DATA_IN, CS, SCLK, MOSI, BUSY);
+
+        // Initialize
+        CLK = 0;
+        RESET = 1;
+        START = 0;
+        DATA_IN = 8'b00000000;
+
+        // Reset
+        #10;
+        RESET = 0;
+
+        // Start transmission
+        #10;
+        DATA_IN = 8'b10101010;
+        START = 1;
+
+        #10;
+        START = 0;
+
+        // Wait for transmission
+        #300;
+
+        $display("------------------------------------------------");
+        $display("Simulation completed.");
+
+        $finish;
+
+    end
+
+endmodule
