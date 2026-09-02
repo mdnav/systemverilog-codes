@@ -1,0 +1,71 @@
+// uart_receiver.v
+
+module uart_receiver (
+    input CLK,
+    input RESET,
+    input RX,
+    output reg [7:0] DATA_OUT,
+    output reg DATA_READY
+);
+
+    reg [3:0] bit_count;
+    reg [7:0] data_buffer;
+    reg receiving;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            bit_count  <= 4'd0;
+            data_buffer <= 8'd0;
+            DATA_OUT <= 8'd0;
+            DATA_READY <= 1'b0;
+            receiving <= 1'b0;
+        end
+
+        else begin
+
+            // Default: DATA_READY remains low
+            DATA_READY <= 1'b0;
+
+            // Wait for Start Bit
+            if (!receiving) begin
+
+                if (RX == 1'b0) begin
+                    receiving <= 1'b1;
+                    bit_count <= 4'd0;
+                end
+
+            end
+
+            // Receive Data
+            else begin
+
+                if (bit_count < 8) begin
+
+                    // Receive bits LSB first
+                    data_buffer[bit_count] <= RX;
+
+                    bit_count <= bit_count + 1'b1;
+
+                end
+
+                // Stop Bit
+                else begin
+
+                    if (RX == 1'b1) begin
+                        DATA_OUT <= data_buffer;
+                        DATA_READY <= 1'b1;
+                    end
+
+                    receiving <= 1'b0;
+                    bit_count <= 4'd0;
+
+                end
+
+            end
+
+        end
+
+    end
+
+endmodule
