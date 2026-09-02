@@ -1,0 +1,76 @@
+// spi_master.v
+
+module spi_master (
+    input CLK,
+    input RESET,
+    input START,
+    input [7:0] DATA_IN,
+
+    output reg SCLK,
+    output reg MOSI,
+    output reg CS,
+    output reg BUSY
+);
+
+    reg [2:0] bit_count;
+    reg [7:0] data_buffer;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            SCLK <= 1'b0;
+            MOSI <= 1'b0;
+            CS <= 1'b1;       // Slave not selected
+            BUSY <= 1'b0;
+
+            bit_count <= 3'd0;
+            data_buffer <= 8'd0;
+        end
+
+        else begin
+
+            // Start SPI transmission
+            if (START && !BUSY) begin
+
+                BUSY <= 1'b1;
+                CS <= 1'b0;           // Select slave
+
+                data_buffer <= DATA_IN;
+                bit_count <= 3'd0;
+
+                MOSI <= DATA_IN[7];   // Send MSB first
+            end
+
+            else if (BUSY) begin
+
+                // Toggle SPI Clock
+                SCLK <= ~SCLK;
+
+                // Send next data bit
+                if (SCLK == 1'b1) begin
+
+                    if (bit_count == 3'd7) begin
+
+                        BUSY <= 1'b0;
+                        CS <= 1'b1;
+                        SCLK <= 1'b0;
+
+                    end
+
+                    else begin
+
+                        bit_count <= bit_count + 1'b1;
+
+                        MOSI <= data_buffer[6 - bit_count];
+
+                    end
+
+                end
+
+            end
+
+        end
+
+    end
+
+endmodule
