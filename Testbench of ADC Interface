@@ -1,0 +1,68 @@
+`timescale 1ns/1ps
+
+module tb_adc_interface;
+
+    reg CLK;
+    reg RESET;
+    reg START;
+    reg [7:0] ANALOG_VALUE;
+
+    wire [7:0] DIGITAL_OUT;
+    wire DONE;
+
+    adc_interface DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .START(START),
+        .ANALOG_VALUE(ANALOG_VALUE),
+        .DIGITAL_OUT(DIGITAL_OUT),
+        .DONE(DONE)
+    );
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor("Time=%0t | Analog=%d | Start=%b | Digital=%d | Done=%b",
+                 $time, ANALOG_VALUE, START,
+                 DIGITAL_OUT, DONE);
+
+        CLK = 0;
+        RESET = 1;
+        START = 0;
+        ANALOG_VALUE = 0;
+
+        // Reset
+        #10 RESET = 0;
+
+        // Conversion 1
+        #10;
+        ANALOG_VALUE = 8'd50;
+        START = 1;
+
+        #10 START = 0;
+
+        #20;
+
+        // Conversion 2
+        ANALOG_VALUE = 8'd125;
+        START = 1;
+
+        #10 START = 0;
+
+        #20;
+
+        // Conversion 3
+        ANALOG_VALUE = 8'd200;
+        START = 1;
+
+        #10 START = 0;
+
+        #20;
+
+        $finish;
+
+    end
+
+endmodule
