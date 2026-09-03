@@ -1,0 +1,80 @@
+// digital_lock.v
+
+module digital_lock (
+    input CLK,
+    input RESET,
+    input KEY,
+    output reg UNLOCK
+);
+
+    // State Declaration
+    parameter S0 = 2'b00;
+    parameter S1 = 2'b01;
+    parameter S2 = 2'b10;
+    parameter S3 = 2'b11;
+
+    reg [1:0] state, next_state;
+
+    // State Register
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET)
+            state <= S0;
+        else
+            state <= next_state;
+
+    end
+
+    // Next State Logic
+    always @(*) begin
+
+        next_state = state;
+
+        case(state)
+
+            // Waiting for first '1'
+            S0:
+                if(KEY)
+                    next_state = S1;
+                else
+                    next_state = S0;
+
+            // Received '1'
+            S1:
+                if(!KEY)
+                    next_state = S2;
+                else
+                    next_state = S1;
+
+            // Received '10'
+            S2:
+                if(KEY)
+                    next_state = S3;
+                else
+                    next_state = S0;
+
+            // Received '101'
+            S3:
+                if(KEY)
+                    next_state = S0;      // Password complete
+                else
+                    next_state = S2;
+
+            default:
+                next_state = S0;
+
+        endcase
+
+    end
+
+    // Output Logic (Mealy Type)
+    always @(*) begin
+
+        if(state == S3 && KEY == 1)
+            UNLOCK = 1'b1;
+        else
+            UNLOCK = 1'b0;
+
+    end
+
+endmodule
