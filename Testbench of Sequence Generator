@@ -1,0 +1,36 @@
+`timescale 1ns/1ps
+
+module tb_sequence_generator;
+
+    reg CLK;
+    reg RESET;
+
+    wire [3:0] SEQUENCE;
+
+    sequence_generator DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .SEQUENCE(SEQUENCE)
+    );
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor("Time = %0t | Sequence = %b",
+                 $time, SEQUENCE);
+
+        CLK = 0;
+        RESET = 1;
+
+        // Reset
+        #10 RESET = 0;
+
+        // Allow sequence to run
+        #50;
+
+        $finish;
+    end
+
+endmodule
