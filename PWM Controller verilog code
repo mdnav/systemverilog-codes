@@ -1,0 +1,32 @@
+module pwm_controller (
+    input CLK,
+    input RESET,
+    input [7:0] DUTY,
+    output reg PWM_OUT
+);
+
+    reg [7:0] COUNTER;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            COUNTER <= 8'd0;
+            PWM_OUT <= 1'b0;
+        end
+
+        else begin
+
+            // Increment counter
+            COUNTER <= COUNTER + 1'b1;
+
+            // PWM comparison
+            if (COUNTER < DUTY)
+                PWM_OUT <= 1'b1;
+            else
+                PWM_OUT <= 1'b0;
+
+        end
+
+    end
+
+endmodule
