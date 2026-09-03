@@ -1,0 +1,24 @@
+module sequence_generator (
+    input CLK,
+    input RESET,
+    output reg [3:0] SEQUENCE
+);
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            SEQUENCE <= 4'b1011;
+        else begin
+            case (SEQUENCE)
+
+                4'b1011: SEQUENCE <= 4'b1100;
+                4'b1100: SEQUENCE <= 4'b0110;
+                4'b0110: SEQUENCE <= 4'b0011;
+                4'b0011: SEQUENCE <= 4'b1011;
+
+                default: SEQUENCE <= 4'b1011;
+
+            endcase
+        end
+    end
+
+endmodule
