@@ -1,0 +1,40 @@
+module adc_interface (
+    input CLK,
+    input RESET,
+    input START,
+    input [7:0] ANALOG_VALUE,
+
+    output reg [7:0] DIGITAL_OUT,
+    output reg DONE
+);
+
+    reg BUSY;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            DIGITAL_OUT <= 8'd0;
+            DONE        <= 1'b0;
+            BUSY        <= 1'b0;
+        end
+
+        else begin
+
+            DONE <= 1'b0;
+
+            // Start conversion
+            if (START && !BUSY) begin
+                BUSY <= 1'b1;
+            end
+
+            // Complete conversion
+            else if (BUSY) begin
+                DIGITAL_OUT <= ANALOG_VALUE;
+                DONE        <= 1'b1;
+                BUSY        <= 1'b0;
+            end
+        end
+
+    end
+
+endmodule
