@@ -1,0 +1,73 @@
+// tb_digital_lock.v
+
+`timescale 1ns/1ps
+
+module tb_digital_lock;
+
+    reg CLK;
+    reg RESET;
+    reg KEY;
+
+    wire UNLOCK;
+
+    // Instantiate Digital Lock
+    digital_lock DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .KEY(KEY),
+        .UNLOCK(UNLOCK)
+    );
+
+    // Clock Generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $display("----------------------------------------");
+        $display("Time | KEY | UNLOCK");
+        $display("----------------------------------------");
+
+        $monitor("%4t |  %b  |    %b",
+                 $time, KEY, UNLOCK);
+
+        // Initialize
+        CLK = 0;
+        RESET = 1;
+        KEY = 0;
+
+        // Apply Reset
+        #10 RESET = 0;
+
+        // Correct Password: 1011
+        #10 KEY = 1;
+        #10 KEY = 0;
+        #10 KEY = 1;
+        #10 KEY = 1;
+
+        // Wait
+        #20;
+
+        // Wrong Password: 1001
+        KEY = 1;
+        #10 KEY = 0;
+        #10 KEY = 0;
+        #10 KEY = 1;
+
+        #20;
+
+        // Correct Password Again
+        KEY = 1;
+        #10 KEY = 0;
+        #10 KEY = 1;
+        #10 KEY = 1;
+
+        #20;
+
+        $display("----------------------------------------");
+        $display("Simulation Completed");
+
+        $finish;
+
+    end
+
+endmodule
