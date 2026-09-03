@@ -1,0 +1,53 @@
+`timescale 1ns/1ps
+
+module tb_pwm_controller;
+
+    reg CLK;
+    reg RESET;
+    reg [7:0] DUTY;
+
+    wire PWM_OUT;
+
+    pwm_controller DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .DUTY(DUTY),
+        .PWM_OUT(PWM_OUT)
+    );
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor("Time=%0t | Duty=%d | Counter=%d | PWM=%b",
+                 $time, DUTY, DUT.COUNTER, PWM_OUT);
+
+        CLK = 0;
+        RESET = 1;
+        DUTY = 8'd0;
+
+        // Reset
+        #10 RESET = 0;
+
+        // 25% duty cycle
+        DUTY = 8'd64;
+        #2600;
+
+        // 50% duty cycle
+        DUTY = 8'd128;
+        #2600;
+
+        // 75% duty cycle
+        DUTY = 8'd192;
+        #2600;
+
+        // 100% duty cycle
+        DUTY = 8'd255;
+        #2600;
+
+        $finish;
+
+    end
+
+endmodule
