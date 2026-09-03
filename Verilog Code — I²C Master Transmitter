@@ -1,0 +1,99 @@
+// i2c_master.v
+
+module i2c_master (
+    input CLK,
+    input RESET,
+    input START,
+    input [6:0] SLAVE_ADDR,
+    input [7:0] DATA_IN,
+
+    output reg SCL,
+    output reg SDA,
+    output reg BUSY
+);
+
+    reg [3:0] bit_count;
+    reg [15:0] shift_data;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            SCL        <= 1'b1;
+            SDA        <= 1'b1;
+            BUSY       <= 1'b0;
+            bit_count  <= 4'd0;
+            shift_data <= 16'd0;
+        end
+
+        else begin
+
+            // Start communication
+            if (START && !BUSY) begin
+
+                BUSY <= 1'b1;
+
+                // START condition:
+                // SDA changes HIGH → LOW while SCL is HIGH
+                SDA <= 1'b0;
+
+                bit_count <= 4'd0;
+
+                // Slave address + Write bit
+                shift_data <= {SLAVE_ADDR, 1'b0, DATA_IN};
+
+            end
+
+            else if (BUSY) begin
+
+                // Generate clock
+                SCL <= ~SCL;
+
+                // Change data while SCL is LOW
+                if (SCL == 1'b0) begin
+
+                    if (bit_count < 8) begin
+
+                        SDA <= shift_data[15 - bit_count];
+
+                        bit_count <= bit_count + 1'b1;
+
+                    end
+
+                    else if (bit_count == 8) begin
+
+                        // Release SDA for ACK
+                        SDA <= 1'b1;
+
+                        bit_count <= bit_count + 1'b1;
+
+                    end
+
+                    else if (bit_count < 17) begin
+
+                        SDA <= shift_data[15 - bit_count];
+
+                        bit_count <= bit_count + 1'b1;
+
+                    end
+
+                    else begin
+
+                        // STOP condition
+                        SDA <= 1'b0;
+                        SCL <= 1'b1;
+                        SDA <= 1'b1;
+
+                        BUSY <= 1'b0;
+                        bit_count <= 4'd0;
+
+                    end
+
+                end
+
+            end
+
+        end
+
+    end
+
+endmodule
