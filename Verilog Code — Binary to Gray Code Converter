@@ -1,0 +1,11 @@
+module binary_to_gray (
+    input [3:0] BINARY,
+    output [3:0] GRAY
+);
+
+    assign GRAY[3] = BINARY[3];
+    assign GRAY[2] = BINARY[3] ^ BINARY[2];
+    assign GRAY[1] = BINARY[2] ^ BINARY[1];
+    assign GRAY[0] = BINARY[1] ^ BINARY[0];
+
+endmodule
