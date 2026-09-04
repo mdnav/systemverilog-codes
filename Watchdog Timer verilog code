@@ -1,0 +1,38 @@
+module watchdog_timer #(
+    parameter TIMEOUT_COUNT = 8
+)(
+    input CLK,
+    input RESET,
+    input KICK,
+    output reg TIMEOUT
+);
+
+    reg [7:0] COUNT;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            COUNT   <= 8'd0;
+            TIMEOUT <= 1'b0;
+        end
+
+        else if (KICK) begin
+            // Restart watchdog timer
+            COUNT   <= 8'd0;
+            TIMEOUT <= 1'b0;
+        end
+
+        else if (COUNT == TIMEOUT_COUNT - 1) begin
+            // Timeout condition
+            COUNT   <= COUNT;
+            TIMEOUT <= 1'b1;
+        end
+
+        else begin
+            COUNT   <= COUNT + 1'b1;
+            TIMEOUT <= 1'b0;
+        end
+
+    end
+
+endmodule
