@@ -1,0 +1,71 @@
+`timescale 1ns/1ps
+
+module tb_dac_interface;
+
+    reg CLK;
+    reg RESET;
+    reg ENABLE;
+    reg [7:0] DIGITAL_IN;
+
+    wire [7:0] ANALOG_OUT;
+    wire DONE;
+
+    dac_interface DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .ENABLE(ENABLE),
+        .DIGITAL_IN(DIGITAL_IN),
+        .ANALOG_OUT(ANALOG_OUT),
+        .DONE(DONE)
+    );
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor("Time=%0t | Digital=%d | Analog=%d | Enable=%b | Done=%b",
+                 $time, DIGITAL_IN, ANALOG_OUT,
+                 ENABLE, DONE);
+
+        CLK = 0;
+        RESET = 1;
+        ENABLE = 0;
+        DIGITAL_IN = 0;
+
+        // Reset
+        #10 RESET = 0;
+
+        // Digital value = 50
+        #10;
+        DIGITAL_IN = 8'd50;
+        ENABLE = 1;
+
+        #10 ENABLE = 0;
+
+        // Digital value = 128
+        #20;
+        DIGITAL_IN = 8'd128;
+        ENABLE = 1;
+
+        #10 ENABLE = 0;
+
+        // Digital value = 200
+        #20;
+        DIGITAL_IN = 8'd200;
+        ENABLE = 1;
+
+        #10 ENABLE = 0;
+
+        // Maximum value
+        #20;
+        DIGITAL_IN = 8'd255;
+        ENABLE = 1;
+
+        #10 ENABLE = 0;
+
+        #20 $finish;
+
+    end
+
+endmodule
