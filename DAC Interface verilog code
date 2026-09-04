@@ -1,0 +1,29 @@
+module dac_interface (
+    input CLK,
+    input RESET,
+    input ENABLE,
+    input [7:0] DIGITAL_IN,
+    output reg [7:0] ANALOG_OUT,
+    output reg DONE
+);
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            ANALOG_OUT <= 8'd0;
+            DONE       <= 1'b0;
+        end
+
+        else begin
+            DONE <= 1'b0;
+
+            if (ENABLE) begin
+                // Convert digital input to analog representation
+                ANALOG_OUT <= DIGITAL_IN;
+                DONE <= 1'b1;
+            end
+        end
+
+    end
+
+endmodule
