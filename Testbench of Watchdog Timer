@@ -1,0 +1,59 @@
+`timescale 1ns/1ps
+
+module tb_watchdog_timer;
+
+    reg CLK;
+    reg RESET;
+    reg KICK;
+
+    wire TIMEOUT;
+
+    watchdog_timer #(
+        .TIMEOUT_COUNT(5)
+    ) DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .KICK(KICK),
+        .TIMEOUT(TIMEOUT)
+    );
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor("Time=%0t | Kick=%b | Count=%d | Timeout=%b",
+                 $time, KICK, DUT.COUNT, TIMEOUT);
+
+        CLK = 0;
+        RESET = 1;
+        KICK = 0;
+
+        // Reset watchdog
+        #10 RESET = 0;
+
+        // Periodically kick the watchdog
+        #15 KICK = 1;
+        #10 KICK = 0;
+
+        #15 KICK = 1;
+        #10 KICK = 0;
+
+        #15 KICK = 1;
+        #10 KICK = 0;
+
+        // Stop kicking
+        // Watchdog should timeout
+        #60;
+
+        // Kick after timeout
+        KICK = 1;
+        #10 KICK = 0;
+
+        #20;
+
+        $finish;
+
+    end
+
+endmodule
