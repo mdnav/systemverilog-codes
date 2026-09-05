@@ -1,0 +1,12 @@
+module bcd_to_binary (
+    input  [11:0] BCD,
+    output reg [7:0] BINARY
+);
+
+    always @(*) begin
+        BINARY = (BCD[11:8] * 8'd100) +
+                 (BCD[7:4]  * 8'd10)  +
+                  BCD[3:0];
+    end
+
+endmodule
