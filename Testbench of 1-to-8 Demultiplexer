@@ -1,0 +1,55 @@
+`timescale 1ns/1ps
+
+module tb_demux_1to8;
+
+    reg D;
+    reg [2:0] SEL;
+    wire [7:0] Y;
+
+    demux_1to8 DUT (
+        .D(D),
+        .SEL(SEL),
+        .Y(Y)
+    );
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | D=%b | SEL=%b | Y=%b",
+            $time, D, SEL, Y
+        );
+
+        D = 1'b1;
+
+        SEL = 3'b000;
+        #10;
+
+        SEL = 3'b001;
+        #10;
+
+        SEL = 3'b010;
+        #10;
+
+        SEL = 3'b011;
+        #10;
+
+        SEL = 3'b100;
+        #10;
+
+        SEL = 3'b101;
+        #10;
+
+        SEL = 3'b110;
+        #10;
+
+        SEL = 3'b111;
+        #10;
+
+        D = 1'b0;
+        SEL = 3'b011;
+        #10;
+
+        $finish;
+    end
+
+endmodule
