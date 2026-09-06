@@ -1,0 +1,46 @@
+`timescale 1ns/1ps
+
+module tb_decoder_2to4;
+
+    reg  [1:0] A;
+    reg        ENABLE;
+    wire [3:0] Y;
+
+    decoder_2to4 DUT (
+        .A(A),
+        .ENABLE(ENABLE),
+        .Y(Y)
+    );
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | ENABLE=%b | A=%b | Y=%b",
+            $time, ENABLE, A, Y
+        );
+
+        ENABLE = 1'b0;
+        A = 2'b00;
+        #10;
+
+        ENABLE = 1'b1;
+
+        A = 2'b00;
+        #10;
+
+        A = 2'b01;
+        #10;
+
+        A = 2'b10;
+        #10;
+
+        A = 2'b11;
+        #10;
+
+        ENABLE = 1'b0;
+        #10;
+
+        $finish;
+    end
+
+endmodule
