@@ -1,0 +1,87 @@
+module half_adder (
+    input  A,
+    input  B,
+    output SUM,
+    output CARRY
+);
+
+    assign SUM   = A ^ B;
+    assign CARRY = A & B;
+
+endmodule
+
+
+module full_adder (
+    input  A,
+    input  B,
+    input  CIN,
+    output SUM,
+    output CARRY
+);
+
+    assign SUM   = A ^ B ^ CIN;
+    assign CARRY = (A & B) | (B & CIN) | (A & CIN);
+
+endmodule
+
+
+module array_multiplier_4bit (
+    input  [3:0] A,
+    input  [3:0] B,
+    output [7:0] PRODUCT
+);
+
+    wire [3:0] PP0;
+    wire [3:0] PP1;
+    wire [3:0] PP2;
+    wire [3:0] PP3;
+
+    wire [3:0] S1;
+    wire [3:0] S2;
+    wire [3:0] S3;
+
+    wire [3:0] C1;
+    wire [3:0] C2;
+    wire [3:0] C3;
+
+    // Partial products
+    assign PP0 = A & {4{B[0]}};
+    assign PP1 = A & {4{B[1]}};
+    assign PP2 = A & {4{B[2]}};
+    assign PP3 = A & {4{B[3]}};
+
+    // First addition
+    assign PRODUCT[0] = PP0[0];
+
+    half_adder HA1(PP0[1], PP1[0], S1[0], C1[0]);
+    full_adder FA1(PP0[2], PP1[1], C1[0], S1[1], C1[1]);
+    full_adder FA2(PP0[3], PP1[2], C1[1], S1[2], C1[2]);
+    assign S1[3] = PP1[3];
+    assign C1[3] = 1'b0;
+
+    // Second addition
+    assign PRODUCT[1] = S1[0];
+
+    half_adder HA2(S1[1], PP2[0], S2[0], C2[0]);
+    full_adder FA3(S1[2], PP2[1], C2[0], S2[1], C2[1]);
+    full_adder FA4(S1[3], PP2[2], C2[1], S2[2], C2[2]);
+    assign S2[3] = PP2[3];
+    assign C2[3] = 1'b0;
+
+    // Third addition
+    assign PRODUCT[2] = S2[0];
+
+    half_adder HA3(S2[1], PP3[0], S3[0], C3[0]);
+    full_adder FA5(S2[2], PP3[1], C3[0], S3[1], C3[1]);
+    full_adder FA6(S2[3], PP3[2], C3[1], S3[2], C3[2]);
+    assign S3[3] = PP3[3];
+    assign C3[3] = 1'b0;
+
+    // Final product bits
+    assign PRODUCT[3] = S3[0];
+    assign PRODUCT[4] = S3[1];
+    assign PRODUCT[5] = S3[2];
+    assign PRODUCT[6] = S3[3];
+    assign PRODUCT[7] = C3[2];
+
+endmodule
