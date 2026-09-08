@@ -1,0 +1,16 @@
+module parity_generator_checker (
+    input  [3:0] DATA,
+    input        PARITY_IN,
+    output       EVEN_PARITY,
+    output       ODD_PARITY,
+    output       ERROR
+);
+
+    // Generate parity bits
+    assign EVEN_PARITY = ^DATA;
+    assign ODD_PARITY  = ~(^DATA);
+
+    // Check received data using even parity
+    assign ERROR = ^{DATA, PARITY_IN};
+
+endmodule
