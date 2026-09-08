@@ -1,0 +1,38 @@
+`timescale 1ns/1ps
+
+module tb_lfsr_4bit;
+
+    reg CLK;
+    reg RESET;
+
+    wire [3:0] Q;
+
+    lfsr_4bit DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q)
+    );
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | RESET=%b | LFSR=%b",
+            $time, RESET, Q
+        );
+
+        CLK = 1'b0;
+        RESET = 1'b1;
+
+        #10;
+        RESET = 1'b0;
+
+        #100;
+
+        $finish;
+
+    end
+
+endmodule
