@@ -1,0 +1,19 @@
+module lfsr_4bit (
+    input CLK,
+    input RESET,
+    output reg [3:0] Q
+);
+
+    wire FEEDBACK;
+
+    // Polynomial: x^4 + x^3 + 1
+    assign FEEDBACK = Q[3] ^ Q[2];
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            Q <= 4'b0001;
+        else
+            Q <= {Q[2:0], FEEDBACK};
+    end
+
+endmodule
