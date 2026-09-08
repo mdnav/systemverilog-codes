@@ -1,0 +1,57 @@
+`timescale 1ns/1ps
+
+module tb_parity_generator_checker;
+
+    reg  [3:0] DATA;
+    reg        PARITY_IN;
+
+    wire EVEN_PARITY;
+    wire ODD_PARITY;
+    wire ERROR;
+
+    parity_generator_checker DUT (
+        .DATA(DATA),
+        .PARITY_IN(PARITY_IN),
+        .EVEN_PARITY(EVEN_PARITY),
+        .ODD_PARITY(ODD_PARITY),
+        .ERROR(ERROR)
+    );
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | DATA=%b | PARITY_IN=%b | EVEN=%b | ODD=%b | ERROR=%b",
+            $time, DATA, PARITY_IN,
+            EVEN_PARITY, ODD_PARITY, ERROR
+        );
+
+        // Even number of 1s
+        DATA = 4'b1010;
+        PARITY_IN = 1'b0;
+        #10;
+
+        // Odd number of 1s
+        DATA = 4'b1011;
+        PARITY_IN = 1'b1;
+        #10;
+
+        // Correct parity
+        DATA = 4'b1111;
+        PARITY_IN = 1'b0;
+        #10;
+
+        // Incorrect parity
+        DATA = 4'b1111;
+        PARITY_IN = 1'b1;
+        #10;
+
+        // Another test
+        DATA = 4'b1001;
+        PARITY_IN = 1'b0;
+        #10;
+
+        $finish;
+
+    end
+
+endmodule
