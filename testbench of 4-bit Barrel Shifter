@@ -1,0 +1,52 @@
+`timescale 1ns/1ps
+
+module tb_barrel_shifter_4bit;
+
+    reg  [3:0] DATA;
+    reg  [1:0] SHIFT;
+    reg        LEFT_RIGHT;
+
+    wire [3:0] RESULT;
+
+    barrel_shifter_4bit DUT (
+        .DATA(DATA),
+        .SHIFT(SHIFT),
+        .LEFT_RIGHT(LEFT_RIGHT),
+        .RESULT(RESULT)
+    );
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | DATA=%b | SHIFT=%d | LEFT_RIGHT=%b | RESULT=%b",
+            $time, DATA, SHIFT, LEFT_RIGHT, RESULT
+        );
+
+        // Left shift by 1
+        DATA = 4'b1011;
+        SHIFT = 2'd1;
+        LEFT_RIGHT = 1'b1;
+        #10;
+
+        // Left shift by 2
+        SHIFT = 2'd2;
+        #10;
+
+        // Right shift by 1
+        SHIFT = 2'd1;
+        LEFT_RIGHT = 1'b0;
+        #10;
+
+        // Right shift by 2
+        SHIFT = 2'd2;
+        #10;
+
+        // No shift
+        SHIFT = 2'd0;
+        #10;
+
+        $finish;
+
+    end
+
+endmodule
