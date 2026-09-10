@@ -1,0 +1,15 @@
+module arithmetic_shifter_4bit (
+    input  [3:0] DATA,
+    input  [1:0] SHIFT,
+    input        LEFT_RIGHT,
+    output reg [3:0] RESULT
+);
+
+    always @(*) begin
+        if (LEFT_RIGHT)
+            RESULT = DATA << SHIFT;          // Arithmetic left shift
+        else
+            RESULT = $signed(DATA) >>> SHIFT; // Arithmetic right shift
+    end
+
+endmodule
