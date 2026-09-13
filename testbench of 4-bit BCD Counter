@@ -1,0 +1,45 @@
+`timescale 1ns/1ps
+
+module tb_bcd_counter_4bit;
+
+    reg CLK;
+    reg RESET;
+
+    wire [3:0] Q;
+
+    bcd_counter_4bit DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .Q(Q)
+    );
+
+    // Clock generation
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | RESET=%b | BCD=%b | Decimal=%d",
+            $time, RESET, Q, Q
+        );
+
+        CLK = 1'b0;
+        RESET = 1'b1;
+
+        #10;
+        RESET = 1'b0;
+
+        #110;
+
+        RESET = 1'b1;
+        #10;
+
+        RESET = 1'b0;
+
+        #30;
+
+        $finish;
+
+    end
+
+endmodule
