@@ -1,0 +1,75 @@
+module seven_segment_multiplexer (
+    input        CLK,
+    input        RESET,
+    input  [3:0] DIGIT0,
+    input  [3:0] DIGIT1,
+    input  [3:0] DIGIT2,
+    input  [3:0] DIGIT3,
+
+    output reg [6:0] SEG,
+    output reg [3:0] AN
+);
+
+    reg [1:0] SELECT;
+    reg [3:0] CURRENT_DIGIT;
+
+    // Digit selection counter
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            SELECT <= 2'b00;
+        else
+            SELECT <= SELECT + 1'b1;
+    end
+
+    // Select one of four digits
+    always @(*) begin
+
+        case (SELECT)
+
+            2'b00: begin
+                CURRENT_DIGIT = DIGIT0;
+                AN = 4'b1110;
+            end
+
+            2'b01: begin
+                CURRENT_DIGIT = DIGIT1;
+                AN = 4'b1101;
+            end
+
+            2'b10: begin
+                CURRENT_DIGIT = DIGIT2;
+                AN = 4'b1011;
+            end
+
+            2'b11: begin
+                CURRENT_DIGIT = DIGIT3;
+                AN = 4'b0111;
+            end
+
+        endcase
+
+    end
+
+    // BCD to 7-segment conversion
+    always @(*) begin
+
+        case (CURRENT_DIGIT)
+
+            4'd0: SEG = 7'b1111110;
+            4'd1: SEG = 7'b0110000;
+            4'd2: SEG = 7'b1101101;
+            4'd3: SEG = 7'b1111001;
+            4'd4: SEG = 7'b0110011;
+            4'd5: SEG = 7'b1011011;
+            4'd6: SEG = 7'b1011111;
+            4'd7: SEG = 7'b1110000;
+            4'd8: SEG = 7'b1111111;
+            4'd9: SEG = 7'b1111011;
+
+            default: SEG = 7'b0000000;
+
+        endcase
+
+    end
+
+endmodule
