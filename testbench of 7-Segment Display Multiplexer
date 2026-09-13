@@ -1,0 +1,53 @@
+`timescale 1ns/1ps
+
+module tb_seven_segment_multiplexer;
+
+    reg CLK;
+    reg RESET;
+
+    reg [3:0] DIGIT0;
+    reg [3:0] DIGIT1;
+    reg [3:0] DIGIT2;
+    reg [3:0] DIGIT3;
+
+    wire [6:0] SEG;
+    wire [3:0] AN;
+
+    seven_segment_multiplexer DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .DIGIT0(DIGIT0),
+        .DIGIT1(DIGIT1),
+        .DIGIT2(DIGIT2),
+        .DIGIT3(DIGIT3),
+        .SEG(SEG),
+        .AN(AN)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | AN=%b | Digit=%d | SEG=%b",
+            $time, AN, DUT.CURRENT_DIGIT, SEG
+        );
+
+        CLK = 1'b0;
+        RESET = 1'b1;
+
+        DIGIT0 = 4'd1;
+        DIGIT1 = 4'd2;
+        DIGIT2 = 4'd3;
+        DIGIT3 = 4'd4;
+
+        #10;
+        RESET = 1'b0;
+
+        #80;
+
+        $finish;
+
+    end
+
+endmodule
