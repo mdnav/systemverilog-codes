@@ -1,0 +1,51 @@
+`timescale 1ns/1ps
+
+module tb_lfsr_4bit_enable;
+
+    reg CLK;
+    reg RESET;
+    reg ENABLE;
+
+    wire [3:0] Q;
+
+    lfsr_4bit_enable DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .ENABLE(ENABLE),
+        .Q(Q)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | RESET=%b | ENABLE=%b | LFSR=%b",
+            $time, RESET, ENABLE, Q
+        );
+
+        CLK = 1'b0;
+        RESET = 1'b1;
+        ENABLE = 1'b0;
+
+        // Reset
+        #10;
+        RESET = 1'b0;
+
+        // Enable LFSR
+        ENABLE = 1'b1;
+        #50;
+
+        // Hold current state
+        ENABLE = 1'b0;
+        #30;
+
+        // Continue sequence
+        ENABLE = 1'b1;
+        #50;
+
+        $finish;
+
+    end
+
+endmodule
