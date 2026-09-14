@@ -1,0 +1,84 @@
+`timescale 1ns/1ps
+
+module tb_stack_8x8;
+
+    reg CLK;
+    reg RESET;
+    reg PUSH;
+    reg POP;
+    reg [7:0] DATA_IN;
+
+    wire [7:0] DATA_OUT;
+    wire FULL;
+    wire EMPTY;
+
+    stack_8x8 DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .PUSH(PUSH),
+        .POP(POP),
+        .DATA_IN(DATA_IN),
+        .DATA_OUT(DATA_OUT),
+        .FULL(FULL),
+        .EMPTY(EMPTY)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | PUSH=%b | POP=%b | DATA_IN=%h | DATA_OUT=%h | SP=%d | FULL=%b | EMPTY=%b",
+            $time,
+            PUSH,
+            POP,
+            DATA_IN,
+            DATA_OUT,
+            DUT.SP,
+            FULL,
+            EMPTY
+        );
+
+        CLK = 1'b0;
+        RESET = 1'b1;
+        PUSH = 1'b0;
+        POP = 1'b0;
+        DATA_IN = 8'h00;
+
+        #10;
+        RESET = 1'b0;
+
+        // PUSH 11
+        PUSH = 1'b1;
+        DATA_IN = 8'h11;
+        #10;
+
+        // PUSH 22
+        DATA_IN = 8'h22;
+        #10;
+
+        // PUSH 33
+        DATA_IN = 8'h33;
+        #10;
+
+        PUSH = 1'b0;
+        #10;
+
+        // POP → 33
+        POP = 1'b1;
+        #10;
+
+        // POP → 22
+        #10;
+
+        // POP → 11
+        #10;
+
+        POP = 1'b0;
+        #10;
+
+        $finish;
+
+    end
+
+endmodule
