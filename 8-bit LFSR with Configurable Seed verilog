@@ -1,0 +1,23 @@
+module lfsr_8bit_seed (
+    input        CLK,
+    input        RESET,
+    input        LOAD,
+    input  [7:0] SEED,
+    output reg [7:0] Q
+);
+
+    wire FEEDBACK;
+
+    // Polynomial: x^8 + x^6 + x^5 + x^4 + 1
+    assign FEEDBACK = Q[7] ^ Q[5] ^ Q[4] ^ Q[3];
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            Q <= 8'b00000001;
+        else if (LOAD)
+            Q <= SEED;
+        else
+            Q <= {Q[6:0], FEEDBACK};
+    end
+
+endmodule
