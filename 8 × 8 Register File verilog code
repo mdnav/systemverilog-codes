@@ -1,0 +1,34 @@
+module register_file_8x8 (
+    input        CLK,
+    input        RESET,
+    input        WRITE_ENABLE,
+    input  [2:0]  WRITE_ADDR,
+    input  [7:0]  WRITE_DATA,
+    input  [2:0]  READ_ADDR1,
+    input  [2:0]  READ_ADDR2,
+    output [7:0]  READ_DATA1,
+    output [7:0]  READ_DATA2
+);
+
+    reg [7:0] REG [0:7];
+    integer i;
+
+    // Write operation and reset
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            for (i = 0; i < 8; i = i + 1)
+                REG[i] <= 8'b00000000;
+        end
+
+        else if (WRITE_ENABLE) begin
+            REG[WRITE_ADDR] <= WRITE_DATA;
+        end
+
+    end
+
+    // Two asynchronous read ports
+    assign READ_DATA1 = REG[READ_ADDR1];
+    assign READ_DATA2 = REG[READ_ADDR2];
+
+endmodule
