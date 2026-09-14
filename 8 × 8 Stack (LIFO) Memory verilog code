@@ -1,0 +1,48 @@
+module stack_8x8 (
+    input        CLK,
+    input        RESET,
+    input        PUSH,
+    input        POP,
+    input  [7:0]  DATA_IN,
+    output reg [7:0] DATA_OUT,
+    output        FULL,
+    output        EMPTY
+);
+
+    reg [7:0] STACK [0:7];
+    reg [3:0] SP;
+
+    assign FULL  = (SP == 4'd8);
+    assign EMPTY = (SP == 4'd0);
+
+    integer i;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            SP       <= 4'd0;
+            DATA_OUT <= 8'd0;
+
+            for (i = 0; i < 8; i = i + 1)
+                STACK[i] <= 8'd0;
+        end
+
+        else begin
+
+            // PUSH operation
+            if (PUSH && !FULL) begin
+                STACK[SP] <= DATA_IN;
+                SP <= SP + 1'b1;
+            end
+
+            // POP operation
+            else if (POP && !EMPTY) begin
+                SP <= SP - 1'b1;
+                DATA_OUT <= STACK[SP - 1'b1];
+            end
+
+        end
+
+    end
+
+endmodule
