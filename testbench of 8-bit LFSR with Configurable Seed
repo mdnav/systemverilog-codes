@@ -1,0 +1,58 @@
+`timescale 1ns/1ps
+
+module tb_lfsr_8bit_seed;
+
+    reg CLK;
+    reg RESET;
+    reg LOAD;
+    reg [7:0] SEED;
+
+    wire [7:0] Q;
+
+    lfsr_8bit_seed DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .LOAD(LOAD),
+        .SEED(SEED),
+        .Q(Q)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | RESET=%b | LOAD=%b | SEED=%b | LFSR=%b",
+            $time, RESET, LOAD, SEED, Q
+        );
+
+        CLK = 1'b0;
+        RESET = 1'b1;
+        LOAD = 1'b0;
+        SEED = 8'b10110101;
+
+        // Reset
+        #10;
+        RESET = 1'b0;
+
+        // Load custom seed
+        LOAD = 1'b1;
+        #10;
+
+        // Start LFSR
+        LOAD = 1'b0;
+        #100;
+
+        // Load another seed
+        SEED = 8'b11001010;
+        LOAD = 1'b1;
+        #10;
+
+        LOAD = 1'b0;
+        #60;
+
+        $finish;
+
+    end
+
+endmodule
