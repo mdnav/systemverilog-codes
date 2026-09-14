@@ -1,0 +1,49 @@
+module frequency_counter #(
+    parameter GATE_TIME = 100
+)(
+    input        CLK,
+    input        RESET,
+    input        INPUT_SIGNAL,
+    output reg [15:0] COUNT,
+    output reg        READY
+);
+
+    reg [15:0] PULSE_COUNT;
+    reg [15:0] TIME_COUNT;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            PULSE_COUNT <= 16'd0;
+            TIME_COUNT  <= 16'd0;
+            COUNT       <= 16'd0;
+            READY       <= 1'b0;
+        end
+
+        else begin
+
+            READY <= 1'b0;
+
+            if (TIME_COUNT < GATE_TIME - 1) begin
+
+                TIME_COUNT <= TIME_COUNT + 1'b1;
+
+                if (INPUT_SIGNAL)
+                    PULSE_COUNT <= PULSE_COUNT + 1'b1;
+
+            end
+
+            else begin
+
+                COUNT       <= PULSE_COUNT;
+                PULSE_COUNT <= 16'd0;
+                TIME_COUNT  <= 16'd0;
+                READY       <= 1'b1;
+
+            end
+
+        end
+
+    end
+
+endmodule
