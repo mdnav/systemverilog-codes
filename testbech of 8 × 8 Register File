@@ -1,0 +1,97 @@
+`timescale 1ns/1ps
+
+module tb_register_file_8x8;
+
+    reg CLK;
+    reg RESET;
+    reg WRITE_ENABLE;
+
+    reg [2:0] WRITE_ADDR;
+    reg [7:0] WRITE_DATA;
+
+    reg [2:0] READ_ADDR1;
+    reg [2:0] READ_ADDR2;
+
+    wire [7:0] READ_DATA1;
+    wire [7:0] READ_DATA2;
+
+    register_file_8x8 DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .WRITE_ENABLE(WRITE_ENABLE),
+        .WRITE_ADDR(WRITE_ADDR),
+        .WRITE_DATA(WRITE_DATA),
+        .READ_ADDR1(READ_ADDR1),
+        .READ_ADDR2(READ_ADDR2),
+        .READ_DATA1(READ_DATA1),
+        .READ_DATA2(READ_DATA2)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | WE=%b | W_ADDR=%d | W_DATA=%h | R1_ADDR=%d | R1_DATA=%h | R2_ADDR=%d | R2_DATA=%h",
+            $time,
+            WRITE_ENABLE,
+            WRITE_ADDR,
+            WRITE_DATA,
+            READ_ADDR1,
+            READ_DATA1,
+            READ_ADDR2,
+            READ_DATA2
+        );
+
+        CLK = 1'b0;
+        RESET = 1'b1;
+        WRITE_ENABLE = 1'b0;
+
+        WRITE_ADDR = 3'b000;
+        WRITE_DATA = 8'h00;
+
+        READ_ADDR1 = 3'b000;
+        READ_ADDR2 = 3'b001;
+
+        #10;
+        RESET = 1'b0;
+
+        // Write 25 to register 0
+        WRITE_ENABLE = 1'b1;
+        WRITE_ADDR = 3'b000;
+        WRITE_DATA = 8'h25;
+        #10;
+
+        // Write A5 to register 3
+        WRITE_ADDR = 3'b011;
+        WRITE_DATA = 8'hA5;
+        #10;
+
+        // Write F0 to register 6
+        WRITE_ADDR = 3'b110;
+        WRITE_DATA = 8'hF0;
+        #10;
+
+        // Stop writing
+        WRITE_ENABLE = 1'b0;
+
+        // Read register 0 and register 3
+        READ_ADDR1 = 3'b000;
+        READ_ADDR2 = 3'b011;
+        #10;
+
+        // Read register 3 and register 6
+        READ_ADDR1 = 3'b011;
+        READ_ADDR2 = 3'b110;
+        #10;
+
+        // Read register 6 and register 0
+        READ_ADDR1 = 3'b110;
+        READ_ADDR2 = 3'b000;
+        #10;
+
+        $finish;
+
+    end
+
+endmodule
