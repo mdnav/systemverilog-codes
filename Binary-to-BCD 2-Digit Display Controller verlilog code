@@ -1,0 +1,72 @@
+module binary_to_bcd_2digit_display (
+    input        CLK,
+    input        RESET,
+    input  [7:0] BINARY,
+
+    output reg [6:0] SEG,
+    output reg [1:0] AN
+);
+
+    reg [3:0] TENS;
+    reg [3:0] UNITS;
+
+    reg SELECT;
+
+    // Convert binary number into decimal digits
+    always @(*) begin
+        TENS  = BINARY / 10;
+        UNITS = BINARY % 10;
+    end
+
+    // Display selection
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            SELECT <= 1'b0;
+        else
+            SELECT <= ~SELECT;
+    end
+
+    // Select digit
+    always @(*) begin
+
+        if (SELECT) begin
+            AN = 2'b01;
+
+            case (TENS)
+                4'd0: SEG = 7'b1111110;
+                4'd1: SEG = 7'b0110000;
+                4'd2: SEG = 7'b1101101;
+                4'd3: SEG = 7'b1111001;
+                4'd4: SEG = 7'b0110011;
+                4'd5: SEG = 7'b1011011;
+                4'd6: SEG = 7'b1011111;
+                4'd7: SEG = 7'b1110000;
+                4'd8: SEG = 7'b1111111;
+                4'd9: SEG = 7'b1111011;
+                default: SEG = 7'b0000000;
+            endcase
+
+        end
+
+        else begin
+            AN = 2'b10;
+
+            case (UNITS)
+                4'd0: SEG = 7'b1111110;
+                4'd1: SEG = 7'b0110000;
+                4'd2: SEG = 7'b1101101;
+                4'd3: SEG = 7'b1111001;
+                4'd4: SEG = 7'b0110011;
+                4'd5: SEG = 7'b1011011;
+                4'd6: SEG = 7'b1011111;
+                4'd7: SEG = 7'b1110000;
+                4'd8: SEG = 7'b1111111;
+                4'd9: SEG = 7'b1111011;
+                default: SEG = 7'b0000000;
+            endcase
+
+        end
+
+    end
+
+endmodule
