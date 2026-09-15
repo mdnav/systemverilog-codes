@@ -1,0 +1,24 @@
+module rising_edge_detector (
+    input  CLK,
+    input  RESET,
+    input  SIGNAL_IN,
+    output reg EDGE_DETECTED
+);
+
+    reg SIGNAL_DELAY;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            SIGNAL_DELAY <= 1'b0;
+            EDGE_DETECTED <= 1'b0;
+        end
+
+        else begin
+            EDGE_DETECTED <= SIGNAL_IN & ~SIGNAL_DELAY;
+            SIGNAL_DELAY <= SIGNAL_IN;
+        end
+
+    end
+
+endmodule
