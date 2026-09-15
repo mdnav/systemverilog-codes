@@ -1,0 +1,60 @@
+`timescale 1ns/1ps
+
+module tb_binary_to_bcd_2digit_display;
+
+    reg CLK;
+    reg RESET;
+    reg [7:0] BINARY;
+
+    wire [6:0] SEG;
+    wire [1:0] AN;
+
+    binary_to_bcd_2digit_display DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .BINARY(BINARY),
+        .SEG(SEG),
+        .AN(AN)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | Binary=%d | Tens=%d | Units=%d | AN=%b | SEG=%b",
+            $time,
+            BINARY,
+            DUT.TENS,
+            DUT.UNITS,
+            AN,
+            SEG
+        );
+
+        CLK = 1'b0;
+        RESET = 1'b1;
+        BINARY = 8'd0;
+
+        #10;
+        RESET = 1'b0;
+
+        BINARY = 8'd25;
+        #20;
+
+        BINARY = 8'd47;
+        #20;
+
+        BINARY = 8'd63;
+        #20;
+
+        BINARY = 8'd99;
+        #20;
+
+        BINARY = 8'd12;
+        #20;
+
+        $finish;
+
+    end
+
+endmodule
