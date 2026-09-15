@@ -1,0 +1,42 @@
+`timescale 1ns/1ps
+
+module tb_crc4_generator;
+
+    reg  [7:0] DATA;
+    wire [3:0] CRC;
+
+    crc4_generator DUT (
+        .DATA(DATA),
+        .CRC(CRC)
+    );
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | DATA=%b | CRC=%b",
+            $time, DATA, CRC
+        );
+
+        DATA = 8'b00000000;
+        #10;
+
+        DATA = 8'b00000001;
+        #10;
+
+        DATA = 8'b10101010;
+        #10;
+
+        DATA = 8'b11001100;
+        #10;
+
+        DATA = 8'b11111111;
+        #10;
+
+        DATA = 8'b10011001;
+        #10;
+
+        $finish;
+
+    end
+
+endmodule
