@@ -1,0 +1,13 @@
+module magnitude_comparator_4bit (
+    input  [3:0] A,
+    input  [3:0] B,
+    output       A_GREATER,
+    output       A_EQUAL,
+    output       A_LESS
+);
+
+    assign A_GREATER = (A > B);
+    assign A_EQUAL   = (A == B);
+    assign A_LESS    = (A < B);
+
+endmodule
