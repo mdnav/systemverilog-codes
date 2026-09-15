@@ -1,0 +1,61 @@
+`timescale 1ns/1ps
+
+module tb_rising_edge_detector;
+
+    reg CLK;
+    reg RESET;
+    reg SIGNAL_IN;
+
+    wire EDGE_DETECTED;
+
+    rising_edge_detector DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .SIGNAL_IN(SIGNAL_IN),
+        .EDGE_DETECTED(EDGE_DETECTED)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | SIGNAL_IN=%b | EDGE_DETECTED=%b",
+            $time,
+            SIGNAL_IN,
+            EDGE_DETECTED
+        );
+
+        CLK = 1'b0;
+        RESET = 1'b1;
+        SIGNAL_IN = 1'b0;
+
+        #10;
+        RESET = 1'b0;
+
+        // Rising edge
+        #10 SIGNAL_IN = 1'b1;
+
+        // Remain HIGH
+        #20;
+
+        // Falling edge
+        SIGNAL_IN = 1'b0;
+
+        #20;
+
+        // Another rising edge
+        SIGNAL_IN = 1'b1;
+
+        #20;
+
+        // Falling edge
+        SIGNAL_IN = 1'b0;
+
+        #20;
+
+        $finish;
+
+    end
+
+endmodule
