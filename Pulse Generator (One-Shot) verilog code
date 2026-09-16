@@ -1,0 +1,52 @@
+module pulse_generator_one_shot #(
+    parameter PULSE_WIDTH = 4
+)(
+    input CLK,
+    input RESET,
+    input TRIGGER,
+    output reg PULSE
+);
+
+    reg [3:0] COUNT;
+    reg ACTIVE;
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            COUNT  <= 4'd0;
+            ACTIVE <= 1'b0;
+            PULSE  <= 1'b0;
+        end
+
+        else begin
+
+            if (TRIGGER && !ACTIVE) begin
+                ACTIVE <= 1'b1;
+                COUNT  <= PULSE_WIDTH;
+                PULSE  <= 1'b1;
+            end
+
+            else if (ACTIVE) begin
+
+                if (COUNT > 1) begin
+                    COUNT <= COUNT - 1'b1;
+                    PULSE <= 1'b1;
+                end
+
+                else begin
+                    COUNT  <= 4'd0;
+                    ACTIVE <= 1'b0;
+                    PULSE  <= 1'b0;
+                end
+
+            end
+
+            else begin
+                PULSE <= 1'b0;
+            end
+
+        end
+
+    end
+
+endmodule
