@@ -1,0 +1,46 @@
+`timescale 1ns/1ps
+
+module tb_hamming_74_decoder;
+
+    reg [6:0] received;
+
+    wire [3:0] data;
+    wire [2:0] syndrome;
+    wire error;
+
+    hamming_74_decoder uut (
+        .received(received),
+        .data(data),
+        .syndrome(syndrome),
+        .error(error)
+    );
+
+    initial begin
+
+        $monitor("Time=%0t | Received=%b | Syndrome=%b | Error=%b | Data=%b",
+                 $time, received, syndrome, error, data);
+
+        // Correct codeword
+        received = 7'b0000111;
+        #20;
+
+        // Error in bit 1
+        received = 7'b0000110;
+        #20;
+
+        // Error in bit 3
+        received = 7'b0000011;
+        #20;
+
+        // Error in bit 7
+        received = 7'b1000111;
+        #20;
+
+        // No error
+        received = 7'b1010101;
+        #20;
+
+        $finish;
+    end
+
+endmodule
