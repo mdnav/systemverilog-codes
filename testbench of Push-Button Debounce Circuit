@@ -1,0 +1,59 @@
+`timescale 1ns/1ps
+
+module tb_button_debouncer;
+
+    reg CLK;
+    reg RESET;
+    reg BUTTON;
+
+    wire DEBOUNCED;
+
+    button_debouncer #(
+        .COUNT_MAX(5)
+    ) uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .BUTTON(BUTTON),
+        .DEBOUNCED(DEBOUNCED)
+    );
+
+    // Clock: 10 ns period
+    initial begin
+        CLK = 0;
+        forever #5 CLK = ~CLK;
+    end
+
+    initial begin
+        $monitor("Time=%0t | BUTTON=%b | DEBOUNCED=%b | COUNT=%d",
+                 $time, BUTTON, DEBOUNCED, uut.count);
+
+        RESET = 1;
+        BUTTON = 0;
+
+        #20;
+        RESET = 0;
+
+        // Simulated button bounce
+        #20 BUTTON = 1;
+        #5  BUTTON = 0;
+        #5  BUTTON = 1;
+        #5  BUTTON = 0;
+        #5  BUTTON = 1;
+
+        // Remains stable
+        #100;
+
+        // Release with bounce
+        BUTTON = 0;
+        #5  BUTTON = 1;
+        #5  BUTTON = 0;
+        #5  BUTTON = 1;
+        #5  BUTTON = 0;
+
+        // Remains stable
+        #100;
+
+        $finish;
+    end
+
+endmodule
