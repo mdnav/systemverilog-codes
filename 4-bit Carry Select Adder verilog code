@@ -1,0 +1,24 @@
+module carry_select_adder_4bit (
+    input  wire [3:0] A,
+    input  wire [3:0] B,
+    input  wire       CIN,
+    output wire [3:0] SUM,
+    output wire       COUT
+);
+
+    wire [3:0] sum0;
+    wire [3:0] sum1;
+    wire       carry0;
+    wire       carry1;
+
+    // Assume carry-in = 0
+    assign {carry0, sum0} = A + B + 1'b0;
+
+    // Assume carry-in = 1
+    assign {carry1, sum1} = A + B + 1'b1;
+
+    // Select the correct result
+    assign SUM  = CIN ? sum1 : sum0;
+    assign COUT = CIN ? carry1 : carry0;
+
+endmodule
