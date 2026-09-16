@@ -1,0 +1,35 @@
+module button_debouncer #(
+    parameter COUNT_MAX = 20
+)(
+    input  wire CLK,
+    input  wire RESET,
+    input  wire BUTTON,
+    output reg  DEBOUNCED
+);
+
+    reg [31:0] count;
+    reg button_state;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            count        <= 0;
+            button_state <= 0;
+            DEBOUNCED    <= 0;
+        end
+        else begin
+            if (BUTTON != button_state) begin
+                if (count < COUNT_MAX)
+                    count <= count + 1;
+                else begin
+                    button_state <= BUTTON;
+                    DEBOUNCED    <= BUTTON;
+                    count        <= 0;
+                end
+            end
+            else begin
+                count <= 0;
+            end
+        end
+    end
+
+endmodule
