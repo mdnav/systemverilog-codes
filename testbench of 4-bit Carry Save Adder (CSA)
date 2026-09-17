@@ -1,0 +1,50 @@
+`timescale 1ns/1ps
+
+module tb_carry_save_adder_4bit;
+
+    reg [3:0] A;
+    reg [3:0] B;
+    reg [3:0] C;
+
+    wire [3:0] SUM;
+    wire [3:0] CARRY;
+    wire [4:0] RESULT;
+
+    carry_save_adder_4bit uut (
+        .A(A),
+        .B(B),
+        .C(C),
+        .SUM(SUM),
+        .CARRY(CARRY),
+        .RESULT(RESULT)
+    );
+
+    initial begin
+
+        $monitor("Time=%0t | A=%b | B=%b | C=%b | SUM=%b | CARRY=%b | RESULT=%b",
+                 $time, A, B, C, SUM, CARRY, RESULT);
+
+        A = 4'b0011;
+        B = 4'b0101;
+        C = 4'b0010;
+        #10;
+
+        A = 4'b0110;
+        B = 4'b0011;
+        C = 4'b0100;
+        #10;
+
+        A = 4'b1111;
+        B = 4'b0001;
+        C = 4'b0010;
+        #10;
+
+        A = 4'b1010;
+        B = 4'b0101;
+        C = 4'b0011;
+        #10;
+
+        $finish;
+    end
+
+endmodule
