@@ -1,0 +1,20 @@
+module carry_save_adder_4bit (
+    input  wire [3:0] A,
+    input  wire [3:0] B,
+    input  wire [3:0] C,
+
+    output wire [3:0] SUM,
+    output wire [3:0] CARRY,
+    output wire [4:0] RESULT
+);
+
+    // Sum without carry propagation
+    assign SUM = A ^ B ^ C;
+
+    // Carry generated at each bit
+    assign CARRY = (A & B) | (B & C) | (A & C);
+
+    // Shift carry to the next bit and add
+    assign RESULT = {1'b0, SUM} + {CARRY, 1'b0};
+
+endmodule
