@@ -1,0 +1,70 @@
+`timescale 1ns/1ps
+
+module tb_dc_motor_controller;
+
+    reg CLK;
+    reg RESET;
+    reg FORWARD;
+    reg REVERSE;
+
+    wire IN1;
+    wire IN2;
+    wire ENABLE;
+
+    dc_motor_controller uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .FORWARD(FORWARD),
+        .REVERSE(REVERSE),
+        .IN1(IN1),
+        .IN2(IN2),
+        .ENABLE(ENABLE)
+    );
+
+    // 10 ns clock
+    initial begin
+        CLK = 0;
+        forever #5 CLK = ~CLK;
+    end
+
+    initial begin
+
+        $monitor("Time=%0t | FWD=%b | REV=%b | IN1=%b | IN2=%b | ENABLE=%b",
+                 $time, FORWARD, REVERSE, IN1, IN2, ENABLE);
+
+        RESET = 1;
+        FORWARD = 0;
+        REVERSE = 0;
+
+        #10;
+        RESET = 0;
+
+        // Forward
+        FORWARD = 1;
+        REVERSE = 0;
+        #20;
+
+        // Stop
+        FORWARD = 0;
+        REVERSE = 0;
+        #20;
+
+        // Reverse
+        FORWARD = 0;
+        REVERSE = 1;
+        #20;
+
+        // Brake
+        FORWARD = 1;
+        REVERSE = 1;
+        #20;
+
+        // Stop
+        FORWARD = 0;
+        REVERSE = 0;
+        #20;
+
+        $finish;
+    end
+
+endmodule
