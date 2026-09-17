@@ -1,0 +1,54 @@
+`timescale 1ns/1ps
+
+module tb_binary_divider_4bit;
+
+    reg [3:0] dividend;
+    reg [3:0] divisor;
+
+    wire [3:0] quotient;
+    wire [3:0] remainder;
+    wire       divide_by_zero;
+
+    binary_divider_4bit uut (
+        .dividend(dividend),
+        .divisor(divisor),
+        .quotient(quotient),
+        .remainder(remainder),
+        .divide_by_zero(divide_by_zero)
+    );
+
+    initial begin
+
+        $monitor("Time=%0t | Dividend=%d | Divisor=%d | Quotient=%d | Remainder=%d | Div0=%b",
+                 $time, dividend, divisor,
+                 quotient, remainder, divide_by_zero);
+
+        // 10 / 2
+        dividend = 4'd10;
+        divisor  = 4'd2;
+        #10;
+
+        // 15 / 4
+        dividend = 4'd15;
+        divisor  = 4'd4;
+        #10;
+
+        // 9 / 3
+        dividend = 4'd9;
+        divisor  = 4'd3;
+        #10;
+
+        // 7 / 2
+        dividend = 4'd7;
+        divisor  = 4'd2;
+        #10;
+
+        // Division by zero
+        dividend = 4'd10;
+        divisor  = 4'd0;
+        #10;
+
+        $finish;
+    end
+
+endmodule
