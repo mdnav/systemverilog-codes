@@ -1,0 +1,63 @@
+`timescale 1ns/1ps
+
+module tb_stepper_motor_controller;
+
+    reg CLK;
+    reg RESET;
+    reg ENABLE;
+    reg DIRECTION;
+
+    wire [3:0] COIL;
+
+    stepper_motor_controller uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .ENABLE(ENABLE),
+        .DIRECTION(DIRECTION),
+        .COIL(COIL)
+    );
+
+    // 10 ns clock
+    initial begin
+        CLK = 0;
+        forever #5 CLK = ~CLK;
+    end
+
+    initial begin
+
+        $monitor("Time=%0t | Enable=%b | Direction=%b | State=%b | Coil=%b",
+                 $time, ENABLE, DIRECTION, uut.state, COIL);
+
+        RESET = 1;
+        ENABLE = 0;
+        DIRECTION = 1;
+
+        #10;
+        RESET = 0;
+
+        // Clockwise rotation
+        ENABLE = 1;
+        DIRECTION = 1;
+
+        #50;
+
+        // Stop motor
+        ENABLE = 0;
+
+        #20;
+
+        // Counter-clockwise rotation
+        ENABLE = 1;
+        DIRECTION = 0;
+
+        #50;
+
+        // Stop
+        ENABLE = 0;
+
+        #20;
+
+        $finish;
+    end
+
+endmodule
