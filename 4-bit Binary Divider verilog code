@@ -1,0 +1,24 @@
+module binary_divider_4bit (
+    input  wire [3:0] dividend,
+    input  wire [3:0] divisor,
+    output reg  [3:0] quotient,
+    output reg  [3:0] remainder,
+    output reg        divide_by_zero
+);
+
+    always @(*) begin
+
+        if (divisor == 4'b0000) begin
+            quotient      = 4'b0000;
+            remainder     = 4'b0000;
+            divide_by_zero = 1'b1;
+        end
+        else begin
+            quotient      = dividend / divisor;
+            remainder     = dividend % divisor;
+            divide_by_zero = 1'b0;
+        end
+
+    end
+
+endmodule
