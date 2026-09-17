@@ -1,0 +1,37 @@
+module stepper_motor_controller (
+    input  wire       CLK,
+    input  wire       RESET,
+    input  wire       ENABLE,
+    input  wire       DIRECTION,   // 1 = CW, 0 = CCW
+
+    output reg  [3:0] COIL
+);
+
+    reg [1:0] state;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            state <= 2'b00;
+        end
+        else if (ENABLE) begin
+            if (DIRECTION)
+                state <= state + 1'b1;
+            else
+                state <= state - 1'b1;
+        end
+    end
+
+    always @(*) begin
+        case (state)
+
+            2'b00: COIL = 4'b1001;
+            2'b01: COIL = 4'b0011;
+            2'b10: COIL = 4'b0110;
+            2'b11: COIL = 4'b1100;
+
+            default: COIL = 4'b0000;
+
+        endcase
+    end
+
+endmodule
