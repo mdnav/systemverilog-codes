@@ -1,0 +1,131 @@
+`timescale 1ns/1ps
+
+module tb_apb_slave;
+
+    reg        PCLK;
+    reg        PRESETn;
+
+    reg        PSEL;
+    reg        PENABLE;
+    reg        PWRITE;
+    reg [7:0]  PADDR;
+    reg [7:0]  PWDATA;
+
+    wire [7:0] PRDATA;
+    wire       PREADY;
+    wire       PSLVERR;
+
+    apb_slave uut (
+        .PCLK(PCLK),
+        .PRESETn(PRESETn),
+        .PSEL(PSEL),
+        .PENABLE(PENABLE),
+        .PWRITE(PWRITE),
+        .PADDR(PADDR),
+        .PWDATA(PWDATA),
+        .PRDATA(PRDATA),
+        .PREADY(PREADY),
+        .PSLVERR(PSLVERR)
+    );
+
+    // Clock
+    initial begin
+        PCLK = 0;
+        forever #5 PCLK = ~PCLK;
+    end
+
+    // APB write task
+    task apb_write;
+        input [7:0] address;
+        input [7:0] data;
+        begin
+            @(posedge PCLK);
+
+            PSEL    = 1'b1;
+            PENABLE = 1'b0;
+            PWRITE  = 1'b1;
+            PADDR   = address;
+            PWDATA  = data;
+
+            @(posedge PCLK);
+
+            PENABLE = 1'b1;
+
+            @(posedge PCLK);
+
+            PSEL    = 1'b0;
+            PENABLE = 1'b0;
+            PWRITE  = 1'b0;
+        end
+    endtask
+
+    // APB read task
+    task apb_read;
+        input [7:0] address;
+        begin
+            @(posedge PCLK);
+
+            PSEL    = 1'b1;
+            PENABLE = 1'b0;
+            PWRITE  = 1'b0;
+            PADDR   = address;
+
+            @(posedge PCLK);
+
+            PENABLE = 1'b1;
+
+            @(posedge PCLK);
+
+            $display("READ: Address=%h Data=%h Error=%b",
+                     PADDR, PRDATA, PSLVERR);
+
+            PSEL    = 1'b0;
+            PENABLE = 1'b0;
+        end
+    endtask
+
+    initial begin
+
+        $monitor("Time=%0t | PSEL=%b | ENABLE=%b | WRITE=%b | ADDR=%h | WDATA=%h | RDATA=%h | READY=%b | ERROR=%b",
+                 $time,
+                 PSEL,
+                 PENABLE,
+                 PWRITE,
+                 PADDR,
+                 PWDATA,
+                 PRDATA,
+                 PREADY,
+                 PSLVERR);
+
+        // Initial values
+        PRESETn = 1'b0;
+        PSEL    = 1'b0;
+        PENABLE = 1'b0;
+        PWRITE  = 1'b0;
+        PADDR   = 8'h00;
+        PWDATA  = 8'h00;
+
+        #20;
+        PRESETn = 1'b1;
+
+        // Write 0xAA to register 0
+        apb_write(8'h00, 8'hAA);
+
+        // Write 0x55 to register 1
+        apb_write(8'h04, 8'h55);
+
+        // Read register 0
+        apb_read(8'h00);
+
+        // Read register 1
+        apb_read(8'h04);
+
+        // Invalid address
+        apb_read(8'h08);
+
+        #20;
+        $finish;
+
+    end
+
+endmodule
