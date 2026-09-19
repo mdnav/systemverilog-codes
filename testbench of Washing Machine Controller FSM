@@ -1,0 +1,103 @@
+`timescale 1ns/1ps
+
+module tb_washing_machine_controller;
+
+    reg CLK;
+    reg RESET;
+    reg START;
+    reg WATER_FULL;
+    reg WASH_DONE;
+    reg DRAIN_DONE;
+    reg SPIN_DONE;
+
+    wire WATER_VALVE;
+    wire WASH_MOTOR;
+    wire DRAIN_PUMP;
+    wire SPIN_MOTOR;
+    wire DONE;
+
+    washing_machine_controller uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .START(START),
+        .WATER_FULL(WATER_FULL),
+        .WASH_DONE(WASH_DONE),
+        .DRAIN_DONE(DRAIN_DONE),
+        .SPIN_DONE(SPIN_DONE),
+        .WATER_VALVE(WATER_VALVE),
+        .WASH_MOTOR(WASH_MOTOR),
+        .DRAIN_PUMP(DRAIN_PUMP),
+        .SPIN_MOTOR(SPIN_MOTOR),
+        .DONE(DONE)
+    );
+
+    // Clock
+    initial begin
+        CLK = 0;
+        forever #5 CLK = ~CLK;
+    end
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | State=%d | START=%b | WATER_FULL=%b | WASH_DONE=%b | DRAIN_DONE=%b | SPIN_DONE=%b | VALVE=%b | WASH=%b | DRAIN=%b | SPIN=%b | DONE=%b",
+            $time,
+            uut.state,
+            START,
+            WATER_FULL,
+            WASH_DONE,
+            DRAIN_DONE,
+            SPIN_DONE,
+            WATER_VALVE,
+            WASH_MOTOR,
+            DRAIN_PUMP,
+            SPIN_MOTOR,
+            DONE
+        );
+
+        RESET = 1;
+        START = 0;
+        WATER_FULL = 0;
+        WASH_DONE = 0;
+        DRAIN_DONE = 0;
+        SPIN_DONE = 0;
+
+        #10;
+        RESET = 0;
+
+        // Start washing
+        START = 1;
+        #10;
+        START = 0;
+
+        // Fill
+        #20;
+        WATER_FULL = 1;
+        #10;
+        WATER_FULL = 0;
+
+        // Wash
+        #30;
+        WASH_DONE = 1;
+        #10;
+        WASH_DONE = 0;
+
+        // Drain
+        #30;
+        DRAIN_DONE = 1;
+        #10;
+        DRAIN_DONE = 0;
+
+        // Spin
+        #30;
+        SPIN_DONE = 1;
+        #10;
+        SPIN_DONE = 0;
+
+        // Finish
+        #20;
+
+        $finish;
+    end
+
+endmodule
