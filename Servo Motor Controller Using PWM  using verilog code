@@ -1,0 +1,66 @@
+module servo_motor_controller #(
+    parameter CLK_FREQ = 50_000_000
+)(
+    input  wire       CLK,
+    input  wire       RESET,
+    input  wire [1:0] POSITION,
+    output reg        PWM
+);
+
+    // 20 ms PWM period for a typical servo
+    localparam PERIOD = CLK_FREQ / 50;
+
+    // Pulse widths
+    // 1 ms  -> 0 degrees
+    // 1.5 ms -> 90 degrees
+    // 2 ms  -> 180 degrees
+
+    localparam PULSE_0   = CLK_FREQ / 1000;
+    localparam PULSE_90  = CLK_FREQ * 3 / 2000;
+    localparam PULSE_180 = CLK_FREQ / 500;
+
+    reg [31:0] counter;
+    reg [31:0] pulse_width;
+
+    always @(*) begin
+        case (POSITION)
+
+            2'b00:
+                pulse_width = PULSE_0;
+
+            2'b01:
+                pulse_width = PULSE_90;
+
+            2'b10:
+                pulse_width = PULSE_180;
+
+            default:
+                pulse_width = PULSE_0;
+
+        endcase
+    end
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            counter <= 0;
+            PWM     <= 1'b0;
+        end
+
+        else begin
+
+            if (counter < PERIOD - 1)
+                counter <= counter + 1'b1;
+            else
+                counter <= 0;
+
+            if (counter < pulse_width)
+                PWM <= 1'b1;
+            else
+                PWM <= 1'b0;
+
+        end
+
+    end
+
+endmodule
