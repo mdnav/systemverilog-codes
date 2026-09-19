@@ -1,0 +1,111 @@
+module washing_machine_controller (
+    input  wire       CLK,
+    input  wire       RESET,
+    input  wire       START,
+    input  wire       WATER_FULL,
+    input  wire       WASH_DONE,
+    input  wire       DRAIN_DONE,
+    input  wire       SPIN_DONE,
+
+    output reg        WATER_VALVE,
+    output reg        WASH_MOTOR,
+    output reg        DRAIN_PUMP,
+    output reg        SPIN_MOTOR,
+    output reg        DONE
+);
+
+    reg [2:0] state;
+
+    localparam IDLE  = 3'b000;
+    localparam FILL  = 3'b001;
+    localparam WASH  = 3'b010;
+    localparam DRAIN = 3'b011;
+    localparam SPIN  = 3'b100;
+    localparam FINISH = 3'b101;
+
+    // State register
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET)
+            state <= IDLE;
+        else begin
+            case (state)
+
+                IDLE: begin
+                    if (START)
+                        state <= FILL;
+                end
+
+                FILL: begin
+                    if (WATER_FULL)
+                        state <= WASH;
+                end
+
+                WASH: begin
+                    if (WASH_DONE)
+                        state <= DRAIN;
+                end
+
+                DRAIN: begin
+                    if (DRAIN_DONE)
+                        state <= SPIN;
+                end
+
+                SPIN: begin
+                    if (SPIN_DONE)
+                        state <= FINISH;
+                end
+
+                FINISH: begin
+                    state <= IDLE;
+                end
+
+                default:
+                    state <= IDLE;
+
+            endcase
+        end
+    end
+
+    // Output logic
+    always @(*) begin
+
+        WATER_VALVE = 1'b0;
+        WASH_MOTOR  = 1'b0;
+        DRAIN_PUMP  = 1'b0;
+        SPIN_MOTOR  = 1'b0;
+        DONE        = 1'b0;
+
+        case (state)
+
+            IDLE: begin
+                // All outputs OFF
+            end
+
+            FILL: begin
+                WATER_VALVE = 1'b1;
+            end
+
+            WASH: begin
+                WASH_MOTOR = 1'b1;
+            end
+
+            DRAIN: begin
+                DRAIN_PUMP = 1'b1;
+            end
+
+            SPIN: begin
+                SPIN_MOTOR = 1'b1;
+            end
+
+            FINISH: begin
+                DONE = 1'b1;
+            end
+
+            default: begin
+                // All outputs OFF
+            end
+
+        endcase
+    end
+
+endmodule
