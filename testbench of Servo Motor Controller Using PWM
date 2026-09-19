@@ -1,0 +1,60 @@
+`timescale 1ns/1ps
+
+module tb_servo_motor_controller;
+
+    reg CLK;
+    reg RESET;
+    reg [1:0] POSITION;
+
+    wire PWM;
+
+    servo_motor_controller #(
+        .CLK_FREQ(1000)
+    ) uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .POSITION(POSITION),
+        .PWM(PWM)
+    );
+
+    // 1 MHz simulation clock
+    initial begin
+        CLK = 0;
+        forever #500 CLK = ~CLK;
+    end
+
+    initial begin
+
+        $monitor("Time=%0t | Position=%b | PWM=%b | Counter=%d | Pulse Width=%d",
+                 $time,
+                 POSITION,
+                 PWM,
+                 uut.counter,
+                 uut.pulse_width);
+
+        RESET = 1;
+        POSITION = 2'b00;
+
+        #2000;
+        RESET = 0;
+
+        // 0 degrees
+        POSITION = 2'b00;
+        #22000;
+
+        // 90 degrees
+        POSITION = 2'b01;
+        #22000;
+
+        // 180 degrees
+        POSITION = 2'b10;
+        #22000;
+
+        // Back to 0 degrees
+        POSITION = 2'b00;
+        #22000;
+
+        $finish;
+    end
+
+endmodule
