@@ -1,0 +1,57 @@
+`timescale 1ns/1ps
+
+module dma_controller (
+    input        CLK,
+    input        RESET,
+    input        START,
+    input  [7:0] SRC_ADDR,
+    input  [7:0] DST_ADDR,
+    input  [7:0] LENGTH,
+
+    output reg   BUSY,
+    output reg   DONE
+);
+
+    reg [7:0] memory [0:255];
+
+    reg [7:0] src;
+    reg [7:0] dst;
+    reg [7:0] count;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            BUSY  <= 1'b0;
+            DONE  <= 1'b0;
+            src   <= 8'd0;
+            dst   <= 8'd0;
+            count <= 8'd0;
+        end
+        else begin
+            DONE <= 1'b0;
+
+            if (START && !BUSY) begin
+                src   <= SRC_ADDR;
+                dst   <= DST_ADDR;
+                count <= LENGTH;
+                BUSY  <= 1'b1;
+            end
+
+            else if (BUSY) begin
+
+                if (count > 0) begin
+                    memory[dst] <= memory[src];
+
+                    src   <= src + 1'b1;
+                    dst   <= dst + 1'b1;
+                    count <= count - 1'b1;
+                end
+
+                else begin
+                    BUSY <= 1'b0;
+                    DONE <= 1'b1;
+                end
+            end
+        end
+    end
+
+endmodule
