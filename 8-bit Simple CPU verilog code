@@ -1,0 +1,70 @@
+`timescale 1ns/1ps
+
+module simple_cpu (
+    input        CLK,
+    input        RESET,
+    output reg [7:0] ACC,
+    output reg [7:0] PC
+);
+
+    // Instruction memory
+    reg [7:0] memory [0:255];
+
+    reg [7:0] IR;
+
+    // Opcodes
+    parameter LOAD = 8'h01;
+    parameter ADD  = 8'h02;
+    parameter SUB  = 8'h03;
+    parameter STORE = 8'h04;
+    parameter HALT = 8'hFF;
+
+    reg HALTED;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            ACC    <= 8'd0;
+            PC     <= 8'd0;
+            IR     <= 8'd0;
+            HALTED <= 1'b0;
+        end
+        else if (!HALTED) begin
+
+            // Fetch instruction
+            IR <= memory[PC];
+
+            case (memory[PC])
+
+                LOAD: begin
+                    ACC <= memory[PC + 1];
+                    PC  <= PC + 2;
+                end
+
+                ADD: begin
+                    ACC <= ACC + memory[PC + 1];
+                    PC  <= PC + 2;
+                end
+
+                SUB: begin
+                    ACC <= ACC - memory[PC + 1];
+                    PC  <= PC + 2;
+                end
+
+                STORE: begin
+                    memory[memory[PC + 1]] <= ACC;
+                    PC <= PC + 2;
+                end
+
+                HALT: begin
+                    HALTED <= 1'b1;
+                end
+
+                default: begin
+                    PC <= PC + 1;
+                end
+
+            endcase
+        end
+    end
+
+endmodule
