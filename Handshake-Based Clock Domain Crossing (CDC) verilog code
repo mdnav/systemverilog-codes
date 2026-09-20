@@ -1,0 +1,85 @@
+`timescale 1ns/1ps
+
+module handshake_cdc (
+    input SRC_CLK,
+    input DST_CLK,
+    input RESET,
+
+    input SRC_REQ,
+
+    output reg SRC_BUSY,
+    output reg DST_EVENT
+);
+
+    // Request generated in source domain
+    reg req_toggle;
+
+    // Acknowledge generated in destination domain
+    reg ack_toggle;
+
+    // Synchronizers
+    reg ack_sync1;
+    reg ack_sync2;
+
+    reg req_sync1;
+    reg req_sync2;
+    reg req_sync2_d;
+
+    // Source clock domain
+    always @(posedge SRC_CLK or posedge RESET) begin
+        if (RESET) begin
+            req_toggle <= 1'b0;
+            ack_sync1  <= 1'b0;
+            ack_sync2  <= 1'b0;
+            SRC_BUSY   <= 1'b0;
+        end
+        else begin
+
+            // Synchronize acknowledgement
+            ack_sync1 <= ack_toggle;
+            ack_sync2 <= ack_sync1;
+
+            // Generate request only when previous
+            // request has been acknowledged
+            if (SRC_REQ && !SRC_BUSY) begin
+                req_toggle <= ~req_toggle;
+                SRC_BUSY   <= 1'b1;
+            end
+
+            // Request completed
+            if (SRC_BUSY && (ack_sync2 == req_toggle)) begin
+                SRC_BUSY <= 1'b0;
+            end
+        end
+    end
+
+    // Destination clock domain
+    always @(posedge DST_CLK or posedge RESET) begin
+        if (RESET) begin
+            req_sync1  <= 1'b0;
+            req_sync2  <= 1'b0;
+            req_sync2_d <= 1'b0;
+
+            ack_toggle <= 1'b0;
+            DST_EVENT  <= 1'b0;
+        end
+        else begin
+
+            // Synchronize request
+            req_sync1 <= req_toggle;
+            req_sync2 <= req_sync1;
+
+            // Default
+            DST_EVENT <= 1'b0;
+
+            // Detect new request
+            if (req_sync2 != req_sync2_d) begin
+                DST_EVENT <= 1'b1;
+                ack_toggle <= req_sync2;
+            end
+
+            req_sync2_d <= req_sync2;
+        end
+    end
+
+endmodule
