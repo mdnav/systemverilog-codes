@@ -1,0 +1,71 @@
+`timescale 1ns/1ps
+
+module tb_handshake_cdc;
+
+    reg SRC_CLK;
+    reg DST_CLK;
+    reg RESET;
+    reg SRC_REQ;
+
+    wire SRC_BUSY;
+    wire DST_EVENT;
+
+    handshake_cdc uut (
+        .SRC_CLK(SRC_CLK),
+        .DST_CLK(DST_CLK),
+        .RESET(RESET),
+        .SRC_REQ(SRC_REQ),
+        .SRC_BUSY(SRC_BUSY),
+        .DST_EVENT(DST_EVENT)
+    );
+
+    // Source clock: 10 ns
+    always #5 SRC_CLK = ~SRC_CLK;
+
+    // Destination clock: 14 ns
+    always #7 DST_CLK = ~DST_CLK;
+
+    initial begin
+
+        SRC_CLK = 0;
+        DST_CLK = 0;
+        RESET   = 1;
+        SRC_REQ = 0;
+
+        #12;
+        RESET = 0;
+
+        // First request
+        #13;
+        SRC_REQ = 1;
+
+        #10;
+        SRC_REQ = 0;
+
+        // Wait for handshake to complete
+        #50;
+
+        // Second request
+        SRC_REQ = 1;
+
+        #10;
+        SRC_REQ = 0;
+
+        #60;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "Time=%0t | SRC_REQ=%b | SRC_BUSY=%b | DST_EVENT=%b | REQ=%b | ACK=%b",
+            $time,
+            SRC_REQ,
+            SRC_BUSY,
+            DST_EVENT,
+            uut.req_toggle,
+            uut.ack_toggle
+        );
+    end
+
+endmodule
