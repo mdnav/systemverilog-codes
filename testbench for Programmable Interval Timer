@@ -1,0 +1,87 @@
+`timescale 1ns/1ps
+
+module tb_programmable_timer;
+
+    reg        CLK;
+    reg        RESET;
+    reg        START;
+    reg        LOAD;
+    reg [15:0] LOAD_VALUE;
+
+    wire        TIMEOUT;
+    wire        RUNNING;
+    wire [15:0] COUNT;
+
+    programmable_timer uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .START(START),
+        .LOAD(LOAD),
+        .LOAD_VALUE(LOAD_VALUE),
+        .TIMEOUT(TIMEOUT),
+        .RUNNING(RUNNING),
+        .COUNT(COUNT)
+    );
+
+    // Clock: 10 ns period
+    initial begin
+        CLK = 0;
+        forever #5 CLK = ~CLK;
+    end
+
+    initial begin
+
+        $monitor(
+            "Time=%0t | LOAD=%b | START=%b | LOAD_VALUE=%d | COUNT=%d | RUNNING=%b | TIMEOUT=%b",
+            $time,
+            LOAD,
+            START,
+            LOAD_VALUE,
+            COUNT,
+            RUNNING,
+            TIMEOUT
+        );
+
+        RESET     = 1;
+        START     = 0;
+        LOAD      = 0;
+        LOAD_VALUE = 0;
+
+        #10;
+        RESET = 0;
+
+        // Load value = 5
+        LOAD_VALUE = 16'd5;
+        LOAD = 1;
+
+        #10;
+        LOAD = 0;
+
+        // Start timer
+        START = 1;
+
+        #10;
+        START = 0;
+
+        // Allow timer to count down
+        #70;
+
+        // Load another value
+        LOAD_VALUE = 16'd3;
+        LOAD = 1;
+
+        #10;
+        LOAD = 0;
+
+        // Start again
+        START = 1;
+
+        #10;
+        START = 0;
+
+        #50;
+
+        $finish;
+    end
+
+endmodule
