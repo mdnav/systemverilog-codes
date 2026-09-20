@@ -1,0 +1,72 @@
+`timescale 1ns/1ps
+
+module tb_pulse_synchronizer;
+
+    reg SRC_CLK;
+    reg DST_CLK;
+    reg RESET;
+    reg SRC_PULSE;
+
+    wire DST_PULSE;
+
+    pulse_synchronizer uut (
+        .SRC_CLK(SRC_CLK),
+        .DST_CLK(DST_CLK),
+        .RESET(RESET),
+        .SRC_PULSE(SRC_PULSE),
+        .DST_PULSE(DST_PULSE)
+    );
+
+    // Source clock: 10 ns period
+    always #5 SRC_CLK = ~SRC_CLK;
+
+    // Destination clock: 14 ns period
+    always #7 DST_CLK = ~DST_CLK;
+
+    initial begin
+        SRC_CLK   = 0;
+        DST_CLK   = 0;
+        RESET     = 1;
+        SRC_PULSE = 0;
+
+        #12;
+        RESET = 0;
+
+        // Generate first source pulse
+        #13;
+        SRC_PULSE = 1;
+
+        #10;
+        SRC_PULSE = 0;
+
+        // Generate second source pulse
+        #30;
+        SRC_PULSE = 1;
+
+        #10;
+        SRC_PULSE = 0;
+
+        // Generate third source pulse
+        #35;
+        SRC_PULSE = 1;
+
+        #10;
+        SRC_PULSE = 0;
+
+        #60;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "Time=%0t | SRC_PULSE=%b | TOGGLE=%b | SYNC=%b | DST_PULSE=%b",
+            $time,
+            SRC_PULSE,
+            uut.toggle_src,
+            uut.sync_ff2,
+            DST_PULSE
+        );
+    end
+
+endmodule
