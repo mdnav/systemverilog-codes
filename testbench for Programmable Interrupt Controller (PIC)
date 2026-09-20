@@ -1,0 +1,93 @@
+`timescale 1ns/1ps
+
+module tb_interrupt_controller;
+
+    reg CLK;
+    reg RESET;
+    reg [7:0] IRQ;
+    reg [7:0] MASK;
+    reg ACK;
+
+    wire INTR;
+    wire [2:0] IRQ_ID;
+
+    interrupt_controller uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .IRQ(IRQ),
+        .MASK(MASK),
+        .ACK(ACK),
+        .INTR(INTR),
+        .IRQ_ID(IRQ_ID)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        CLK   = 0;
+        RESET = 1;
+        IRQ   = 8'b0;
+        MASK  = 8'b0;
+        ACK   = 0;
+
+        #10;
+        RESET = 0;
+
+        // Interrupt 3
+        #10;
+        IRQ = 8'b00001000;
+
+        #10;
+        IRQ = 8'b0;
+
+        // CPU acknowledges
+        #10;
+        ACK = 1;
+
+        #10;
+        ACK = 0;
+
+        // Multiple interrupts simultaneously
+        // IRQ1 and IRQ5
+        #10;
+        IRQ = 8'b00100010;
+
+        #10;
+        IRQ = 8'b0;
+
+        // Acknowledge IRQ1
+        #10;
+        ACK = 1;
+
+        #10;
+        ACK = 0;
+
+        // Acknowledge IRQ5
+        #20;
+        ACK = 1;
+
+        #10;
+        ACK = 0;
+
+        // Test masking
+        #10;
+        MASK = 8'b00000100;  // Mask IRQ2
+        IRQ  = 8'b00000100;
+
+        #10;
+        IRQ = 8'b0;
+
+        #20;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "Time=%0t | IRQ=%b | MASK=%b | INTR=%b | IRQ_ID=%d | ACK=%b",
+            $time, IRQ, MASK, INTR, IRQ_ID, ACK
+        );
+    end
+
+endmodule
