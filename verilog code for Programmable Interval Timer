@@ -1,0 +1,56 @@
+module programmable_timer (
+    input  wire        CLK,
+    input  wire        RESET,
+    input  wire        START,
+    input  wire        LOAD,
+    input  wire [15:0] LOAD_VALUE,
+
+    output reg         TIMEOUT,
+    output reg         RUNNING,
+    output reg [15:0]  COUNT
+);
+
+    always @(posedge CLK or posedge RESET) begin
+
+        if (RESET) begin
+            COUNT   <= 16'd0;
+            TIMEOUT <= 1'b0;
+            RUNNING <= 1'b0;
+        end
+
+        else begin
+
+            // TIMEOUT is a one-clock pulse
+            TIMEOUT <= 1'b0;
+
+            // Load timer value
+            if (LOAD) begin
+                COUNT   <= LOAD_VALUE;
+                RUNNING <= 1'b0;
+            end
+
+            // Start timer
+            else if (START && (COUNT != 16'd0)) begin
+                RUNNING <= 1'b1;
+            end
+
+            // Timer running
+            else if (RUNNING) begin
+
+                if (COUNT > 16'd1) begin
+                    COUNT <= COUNT - 1'b1;
+                end
+
+                else begin
+                    COUNT   <= 16'd0;
+                    RUNNING <= 1'b0;
+                    TIMEOUT <= 1'b1;
+                end
+
+            end
+
+        end
+
+    end
+
+endmodule
