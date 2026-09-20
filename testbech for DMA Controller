@@ -1,0 +1,79 @@
+`timescale 1ns/1ps
+
+module tb_dma_controller;
+
+    reg CLK;
+    reg RESET;
+    reg START;
+
+    reg [7:0] SRC_ADDR;
+    reg [7:0] DST_ADDR;
+    reg [7:0] LENGTH;
+
+    wire BUSY;
+    wire DONE;
+
+    dma_controller uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .START(START),
+        .SRC_ADDR(SRC_ADDR),
+        .DST_ADDR(DST_ADDR),
+        .LENGTH(LENGTH),
+        .BUSY(BUSY),
+        .DONE(DONE)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        CLK = 0;
+        RESET = 1;
+        START = 0;
+
+        SRC_ADDR = 0;
+        DST_ADDR = 0;
+        LENGTH = 0;
+
+        #10;
+        RESET = 0;
+
+        // Source memory initialization
+        uut.memory[8'h10] = 8'hA1;
+        uut.memory[8'h11] = 8'hB2;
+        uut.memory[8'h12] = 8'hC3;
+        uut.memory[8'h13] = 8'hD4;
+
+        // DMA configuration
+        SRC_ADDR = 8'h10;
+        DST_ADDR = 8'h20;
+        LENGTH   = 8'd4;
+
+        // Start DMA
+        #10;
+        START = 1;
+
+        #10;
+        START = 0;
+
+        wait(DONE);
+
+        #10;
+
+        $display("DMA Transfer Completed");
+        $display("Memory[20] = %h", uut.memory[8'h20]);
+        $display("Memory[21] = %h", uut.memory[8'h21]);
+        $display("Memory[22] = %h", uut.memory[8'h22]);
+        $display("Memory[23] = %h", uut.memory[8'h23]);
+
+        $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t | START=%b | BUSY=%b | DONE=%b | SRC=%h | DST=%h | COUNT=%d",
+                 $time, START, BUSY, DONE,
+                 uut.src, uut.dst, uut.count);
+    end
+
+endmodule
