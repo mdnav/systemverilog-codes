@@ -1,0 +1,54 @@
+`timescale 1ns/1ps
+
+module interrupt_controller (
+    input        CLK,
+    input        RESET,
+
+    input  [7:0] IRQ,       // Interrupt requests
+    input  [7:0] MASK,      // 1 = masked, 0 = enabled
+    input        ACK,       // CPU interrupt acknowledge
+
+    output reg       INTR,      // Interrupt to CPU
+    output reg [2:0] IRQ_ID     // Selected interrupt number
+);
+
+    reg [7:0] pending;
+    integer i;
+    reg found;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            pending <= 8'b0;
+            INTR    <= 1'b0;
+            IRQ_ID  <= 3'b000;
+        end
+        else begin
+
+            // Store incoming interrupt requests
+            pending <= pending | IRQ;
+
+            if (!INTR) begin
+                found = 1'b0;
+
+                // Priority: IRQ0 > IRQ1 > ... > IRQ7
+                for (i = 0; i < 8; i = i + 1) begin
+                    if (!found &&
+                        pending[i] &&
+                        !MASK[i]) begin
+
+                        IRQ_ID <= i[2:0];
+                        INTR   <= 1'b1;
+                        found  = 1'b1;
+                    end
+                end
+            end
+
+            // CPU acknowledges the interrupt
+            if (ACK) begin
+                INTR <= 1'b0;
+                pending[IRQ_ID] <= 1'b0;
+            end
+        end
+    end
+
+endmodule
