@@ -1,0 +1,47 @@
+`timescale 1ns/1ps
+
+module pulse_synchronizer (
+    input  SRC_CLK,
+    input  DST_CLK,
+    input  RESET,
+
+    input  SRC_PULSE,
+
+    output reg DST_PULSE
+);
+
+    reg toggle_src;
+
+    reg sync_ff1;
+    reg sync_ff2;
+    reg sync_ff2_d;
+
+    // Convert source pulse into a toggle
+    always @(posedge SRC_CLK or posedge RESET) begin
+        if (RESET) begin
+            toggle_src <= 1'b0;
+        end
+        else if (SRC_PULSE) begin
+            toggle_src <= ~toggle_src;
+        end
+    end
+
+    // Synchronize toggle into destination clock domain
+    always @(posedge DST_CLK or posedge RESET) begin
+        if (RESET) begin
+            sync_ff1  <= 1'b0;
+            sync_ff2  <= 1'b0;
+            sync_ff2_d <= 1'b0;
+            DST_PULSE <= 1'b0;
+        end
+        else begin
+            sync_ff1   <= toggle_src;
+            sync_ff2   <= sync_ff1;
+            sync_ff2_d <= sync_ff2;
+
+            // Detect change in synchronized toggle
+            DST_PULSE <= sync_ff2 ^ sync_ff2_d;
+        end
+    end
+
+endmodule
