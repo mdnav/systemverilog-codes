@@ -1,0 +1,26 @@
+`timescale 1ns/1ps
+
+module async_reset_synchronizer (
+    input  CLK,
+    input  ASYNC_RESET,
+
+    output SYNC_RESET
+);
+
+    reg reset_ff1;
+    reg reset_ff2;
+
+    always @(posedge CLK or posedge ASYNC_RESET) begin
+        if (ASYNC_RESET) begin
+            reset_ff1 <= 1'b1;
+            reset_ff2 <= 1'b1;
+        end
+        else begin
+            reset_ff1 <= 1'b0;
+            reset_ff2 <= reset_ff1;
+        end
+    end
+
+    assign SYNC_RESET = reset_ff2;
+
+endmodule
