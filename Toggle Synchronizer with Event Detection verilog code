@@ -1,0 +1,47 @@
+`timescale 1ns/1ps
+
+module toggle_synchronizer (
+    input  SRC_CLK,
+    input  DST_CLK,
+    input  RESET,
+
+    input  SRC_EVENT,
+
+    output reg DST_EVENT
+);
+
+    reg src_toggle;
+
+    reg sync_ff1;
+    reg sync_ff2;
+    reg sync_ff2_d;
+
+    // Source clock domain
+    always @(posedge SRC_CLK or posedge RESET) begin
+        if (RESET) begin
+            src_toggle <= 1'b0;
+        end
+        else if (SRC_EVENT) begin
+            src_toggle <= ~src_toggle;
+        end
+    end
+
+    // Destination clock domain
+    always @(posedge DST_CLK or posedge RESET) begin
+        if (RESET) begin
+            sync_ff1  <= 1'b0;
+            sync_ff2  <= 1'b0;
+            sync_ff2_d <= 1'b0;
+            DST_EVENT <= 1'b0;
+        end
+        else begin
+            sync_ff1   <= src_toggle;
+            sync_ff2   <= sync_ff1;
+            sync_ff2_d <= sync_ff2;
+
+            // Detect toggle change
+            DST_EVENT <= sync_ff2 ^ sync_ff2_d;
+        end
+    end
+
+endmodule
