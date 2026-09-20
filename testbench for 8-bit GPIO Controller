@@ -1,0 +1,91 @@
+`timescale 1ns/1ps
+
+module tb_gpio_controller;
+
+    reg CLK;
+    reg RESET;
+
+    reg WRITE_EN;
+    reg READ_EN;
+
+    reg [7:0] DATA_IN;
+    reg [7:0] GPIO_IN;
+    reg [7:0] DIR;
+
+    wire [7:0] GPIO_OUT;
+    wire [7:0] DATA_OUT;
+
+    gpio_controller uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .WRITE_EN(WRITE_EN),
+        .READ_EN(READ_EN),
+        .DATA_IN(DATA_IN),
+        .GPIO_IN(GPIO_IN),
+        .DIR(DIR),
+        .GPIO_OUT(GPIO_OUT),
+        .DATA_OUT(DATA_OUT)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        CLK      = 0;
+        RESET    = 1;
+        WRITE_EN = 0;
+        READ_EN  = 0;
+        DATA_IN  = 8'b0;
+        GPIO_IN  = 8'b0;
+        DIR      = 8'b0;
+
+        #10;
+        RESET = 0;
+
+        // Configure lower 4 pins as outputs
+        // Configure upper 4 pins as inputs
+        DIR = 8'b00001111;
+
+        // Write data to GPIO
+        #10;
+        DATA_IN  = 8'b00001010;
+        WRITE_EN = 1;
+
+        #10;
+        WRITE_EN = 0;
+
+        // Simulate external input on upper 4 pins
+        GPIO_IN = 8'b10100000;
+
+        // Read GPIO
+        #10;
+        READ_EN = 1;
+
+        #10;
+        READ_EN = 0;
+
+        #10;
+
+        $display("--------------------------------");
+        $display("GPIO Controller Test");
+        $display("Direction = %b", DIR);
+        $display("GPIO_OUT  = %b", GPIO_OUT);
+        $display("DATA_OUT  = %b", DATA_OUT);
+        $display("--------------------------------");
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "Time=%0t | DIR=%b | DATA_IN=%b | GPIO_OUT=%b | GPIO_IN=%b | DATA_OUT=%b",
+            $time,
+            DIR,
+            DATA_IN,
+            GPIO_OUT,
+            GPIO_IN,
+            DATA_OUT
+        );
+    end
+
+endmodule
