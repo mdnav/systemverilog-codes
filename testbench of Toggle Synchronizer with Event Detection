@@ -1,0 +1,73 @@
+`timescale 1ns/1ps
+
+module tb_toggle_synchronizer;
+
+    reg SRC_CLK;
+    reg DST_CLK;
+    reg RESET;
+    reg SRC_EVENT;
+
+    wire DST_EVENT;
+
+    toggle_synchronizer uut (
+        .SRC_CLK(SRC_CLK),
+        .DST_CLK(DST_CLK),
+        .RESET(RESET),
+        .SRC_EVENT(SRC_EVENT),
+        .DST_EVENT(DST_EVENT)
+    );
+
+    // Source clock: 10 ns
+    always #5 SRC_CLK = ~SRC_CLK;
+
+    // Destination clock: 14 ns
+    always #7 DST_CLK = ~DST_CLK;
+
+    initial begin
+
+        SRC_CLK   = 0;
+        DST_CLK   = 0;
+        RESET     = 1;
+        SRC_EVENT = 0;
+
+        #12;
+        RESET = 0;
+
+        // Event 1
+        #13;
+        SRC_EVENT = 1;
+
+        #10;
+        SRC_EVENT = 0;
+
+        // Event 2
+        #25;
+        SRC_EVENT = 1;
+
+        #10;
+        SRC_EVENT = 0;
+
+        // Event 3
+        #30;
+        SRC_EVENT = 1;
+
+        #10;
+        SRC_EVENT = 0;
+
+        #60;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "Time=%0t | SRC_EVENT=%b | SRC_TOGGLE=%b | SYNC=%b | DST_EVENT=%b",
+            $time,
+            SRC_EVENT,
+            uut.src_toggle,
+            uut.sync_ff2,
+            DST_EVENT
+        );
+    end
+
+endmodule
