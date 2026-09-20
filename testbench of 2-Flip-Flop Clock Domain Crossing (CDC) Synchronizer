@@ -1,0 +1,56 @@
+`timescale 1ns/1ps
+
+module tb_cdc_synchronizer;
+
+    reg DEST_CLK;
+    reg RESET;
+    reg ASYNC_IN;
+
+    wire SYNC_OUT;
+
+    cdc_synchronizer uut (
+        .DEST_CLK(DEST_CLK),
+        .RESET(RESET),
+        .ASYNC_IN(ASYNC_IN),
+        .SYNC_OUT(SYNC_OUT)
+    );
+
+    // Destination clock
+    always #5 DEST_CLK = ~DEST_CLK;
+
+    initial begin
+        DEST_CLK = 0;
+        RESET    = 1;
+        ASYNC_IN = 0;
+
+        #12;
+        RESET = 0;
+
+        // Asynchronous input changes
+        #7;
+        ASYNC_IN = 1;
+
+        #18;
+        ASYNC_IN = 0;
+
+        #13;
+        ASYNC_IN = 1;
+
+        #20;
+        ASYNC_IN = 0;
+
+        #20;
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "Time=%0t | ASYNC_IN=%b | FF1=%b | SYNC_OUT=%b",
+            $time,
+            ASYNC_IN,
+            uut.sync_ff1,
+            SYNC_OUT
+        );
+    end
+
+endmodule
