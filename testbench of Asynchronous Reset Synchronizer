@@ -1,0 +1,55 @@
+`timescale 1ns/1ps
+
+module tb_async_reset_synchronizer;
+
+    reg CLK;
+    reg ASYNC_RESET;
+
+    wire SYNC_RESET;
+
+    async_reset_synchronizer uut (
+        .CLK(CLK),
+        .ASYNC_RESET(ASYNC_RESET),
+        .SYNC_RESET(SYNC_RESET)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        ASYNC_RESET = 1;
+
+        // Hold reset
+        #12;
+
+        // Release reset asynchronously
+        ASYNC_RESET = 0;
+
+        #40;
+
+        // Assert reset again
+        ASYNC_RESET = 1;
+
+        #8;
+
+        // Release reset
+        ASYNC_RESET = 0;
+
+        #40;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "Time=%0t | CLK=%b | ASYNC_RESET=%b | FF1=%b | FF2=%b | SYNC_RESET=%b",
+            $time,
+            CLK,
+            ASYNC_RESET,
+            uut.reset_ff1,
+            uut.reset_ff2,
+            SYNC_RESET
+        );
+    end
+
+endmodule
