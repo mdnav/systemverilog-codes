@@ -1,0 +1,66 @@
+`timescale 1ns/1ps
+
+module tb_simple_cpu;
+
+    reg CLK;
+    reg RESET;
+
+    wire [7:0] ACC;
+    wire [7:0] PC;
+
+    simple_cpu uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .ACC(ACC),
+        .PC(PC)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        CLK   = 0;
+        RESET = 1;
+
+        #10;
+        RESET = 0;
+
+        // Program:
+        // LOAD 10
+        // ADD 5
+        // SUB 3
+        // STORE 20
+        // HALT
+
+        uut.memory[0] = 8'h01;
+        uut.memory[1] = 8'd10;
+
+        uut.memory[2] = 8'h02;
+        uut.memory[3] = 8'd5;
+
+        uut.memory[4] = 8'h03;
+        uut.memory[5] = 8'd3;
+
+        uut.memory[6] = 8'h04;
+        uut.memory[7] = 8'h20;
+
+        uut.memory[8] = 8'hFF;
+
+        #100;
+
+        $display("--------------------------------");
+        $display("Simple CPU Execution Complete");
+        $display("Accumulator = %d", ACC);
+        $display("Memory[20]  = %d", uut.memory[8'h20]);
+        $display("Program Counter = %d", PC);
+        $display("--------------------------------");
+
+        $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t | PC=%d | ACC=%d | IR=%h | HALTED=%b",
+                 $time, PC, ACC, uut.IR, uut.HALTED);
+    end
+
+endmodule
