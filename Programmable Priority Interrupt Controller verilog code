@@ -1,0 +1,62 @@
+`timescale 1ns/1ps
+
+module programmable_priority_encoder (
+    input        CLK,
+    input        RESET,
+
+    input  [7:0] IRQ,
+    input  [2:0] PRIORITY0,
+    input  [2:0] PRIORITY1,
+    input  [2:0] PRIORITY2,
+    input  [2:0] PRIORITY3,
+    input  [2:0] PRIORITY4,
+    input  [2:0] PRIORITY5,
+    input  [2:0] PRIORITY6,
+    input  [2:0] PRIORITY7,
+
+    output reg       VALID,
+    output reg [2:0] IRQ_ID,
+    output reg [2:0] IRQ_PRIORITY
+);
+
+    reg [2:0] priority [0:7];
+
+    integer i;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            VALID        <= 1'b0;
+            IRQ_ID       <= 3'b000;
+            IRQ_PRIORITY <= 3'b000;
+        end
+        else begin
+
+            priority[0] <= PRIORITY0;
+            priority[1] <= PRIORITY1;
+            priority[2] <= PRIORITY2;
+            priority[3] <= PRIORITY3;
+            priority[4] <= PRIORITY4;
+            priority[5] <= PRIORITY5;
+            priority[6] <= PRIORITY6;
+            priority[7] <= PRIORITY7;
+
+            VALID        <= 1'b0;
+            IRQ_ID       <= 3'b000;
+            IRQ_PRIORITY <= 3'b000;
+
+            // Search for highest-priority active interrupt
+            for (i = 0; i < 8; i = i + 1) begin
+
+                if (IRQ[i] &&
+                    (!VALID || priority[i] > IRQ_PRIORITY)) begin
+
+                    VALID        <= 1'b1;
+                    IRQ_ID       <= i[2:0];
+                    IRQ_PRIORITY <= priority[i];
+
+                end
+            end
+        end
+    end
+
+endmodule
