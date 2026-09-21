@@ -1,0 +1,182 @@
+`timescale 1ns/1ps
+
+module tb_axi_lite_slave;
+
+    reg CLK;
+    reg RESET;
+
+    reg        AWVALID;
+    reg [1:0]  AWADDR;
+    wire       AWREADY;
+
+    reg        WVALID;
+    reg [7:0]  WDATA;
+    wire       WREADY;
+
+    wire       BVALID;
+    reg        BREADY;
+
+    reg        ARVALID;
+    reg [1:0]  ARADDR;
+    wire       ARREADY;
+
+    wire [7:0] RDATA;
+    wire       RVALID;
+    reg        RREADY;
+
+    axi_lite_slave uut (
+        .CLK(CLK),
+        .RESET(RESET),
+
+        .AWVALID(AWVALID),
+        .AWADDR(AWADDR),
+        .AWREADY(AWREADY),
+
+        .WVALID(WVALID),
+        .WDATA(WDATA),
+        .WREADY(WREADY),
+
+        .BVALID(BVALID),
+        .BREADY(BREADY),
+
+        .ARVALID(ARVALID),
+        .ARADDR(ARADDR),
+        .ARREADY(ARREADY),
+
+        .RDATA(RDATA),
+        .RVALID(RVALID),
+        .RREADY(RREADY)
+    );
+
+    always #5 CLK = ~CLK;
+
+    // -------------------------
+    // WRITE TASK
+    // -------------------------
+    task axi_write;
+        input [1:0] addr;
+        input [7:0] data;
+
+        begin
+
+            // Send address
+            @(posedge CLK);
+
+            AWADDR  = addr;
+            AWVALID = 1'b1;
+
+            @(posedge CLK);
+
+            AWVALID = 1'b0;
+
+            // Send data
+            WDATA  = data;
+            WVALID = 1'b1;
+
+            @(posedge CLK);
+
+            WVALID = 1'b0;
+
+            // Wait for response
+            wait(BVALID);
+
+            @(posedge CLK);
+            BREADY = 1'b1;
+
+            @(posedge CLK);
+            BREADY = 1'b0;
+
+        end
+    endtask
+
+    // -------------------------
+    // READ TASK
+    // -------------------------
+    task axi_read;
+        input [1:0] addr;
+
+        begin
+
+            @(posedge CLK);
+
+            ARADDR  = addr;
+            ARVALID = 1'b1;
+
+            @(posedge CLK);
+
+            ARVALID = 1'b0;
+
+            wait(RVALID);
+
+            @(posedge CLK);
+
+            $display(
+                "READ: Address=%d Data=%h",
+                addr,
+                RDATA
+            );
+
+            RREADY = 1'b1;
+
+            @(posedge CLK);
+
+            RREADY = 1'b0;
+
+        end
+    endtask
+
+    initial begin
+
+        CLK = 0;
+        RESET = 1;
+
+        AWVALID = 0;
+        AWADDR  = 0;
+
+        WVALID = 0;
+        WDATA  = 0;
+
+        BREADY = 0;
+
+        ARVALID = 0;
+        ARADDR  = 0;
+
+        RREADY = 0;
+
+        #12;
+        RESET = 0;
+
+        // Write registers
+        axi_write(2'b00, 8'hA5);
+        axi_write(2'b01, 8'h3C);
+        axi_write(2'b10, 8'hF0);
+        axi_write(2'b11, 8'h55);
+
+        // Read registers
+        axi_read(2'b00);
+        axi_read(2'b01);
+        axi_read(2'b10);
+        axi_read(2'b11);
+
+        #20;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "Time=%0t | AWV=%b AWR=%b | WV=%b WR=%b | BV=%b | ARV=%b ARR=%b | RV=%b RDATA=%h",
+            $time,
+            AWVALID,
+            AWREADY,
+            WVALID,
+            WREADY,
+            BVALID,
+            ARVALID,
+            ARREADY,
+            RVALID,
+            RDATA
+        );
+    end
+
+endmodule
