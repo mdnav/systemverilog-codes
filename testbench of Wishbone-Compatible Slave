@@ -1,0 +1,126 @@
+`timescale 1ns/1ps
+
+module tb_wishbone_slave;
+
+    reg CLK;
+    reg RESET;
+
+    reg        WB_CYC;
+    reg        WB_STB;
+    reg        WB_WE;
+    reg [1:0]  WB_ADDR;
+    reg [7:0]  WB_DATA_IN;
+
+    wire [7:0] WB_DATA_OUT;
+    wire       WB_ACK;
+
+    wishbone_slave uut (
+        .CLK(CLK),
+        .RESET(RESET),
+
+        .WB_CYC(WB_CYC),
+        .WB_STB(WB_STB),
+        .WB_WE(WB_WE),
+        .WB_ADDR(WB_ADDR),
+        .WB_DATA_IN(WB_DATA_IN),
+
+        .WB_DATA_OUT(WB_DATA_OUT),
+        .WB_ACK(WB_ACK)
+    );
+
+    always #5 CLK = ~CLK;
+
+    // Write task
+    task wb_write;
+        input [1:0] addr;
+        input [7:0] data;
+
+        begin
+            @(posedge CLK);
+
+            WB_CYC     = 1'b1;
+            WB_STB     = 1'b1;
+            WB_WE      = 1'b1;
+            WB_ADDR    = addr;
+            WB_DATA_IN = data;
+
+            @(posedge CLK);
+
+            WB_CYC = 1'b0;
+            WB_STB = 1'b0;
+            WB_WE  = 1'b0;
+        end
+    endtask
+
+    // Read task
+    task wb_read;
+        input [1:0] addr;
+
+        begin
+            @(posedge CLK);
+
+            WB_CYC  = 1'b1;
+            WB_STB  = 1'b1;
+            WB_WE   = 1'b0;
+            WB_ADDR = addr;
+
+            @(posedge CLK);
+
+            $display(
+                "Read Address = %d | Data = %h | ACK = %b",
+                addr,
+                WB_DATA_OUT,
+                WB_ACK
+            );
+
+            WB_CYC = 1'b0;
+            WB_STB = 1'b0;
+        end
+    endtask
+
+    initial begin
+
+        CLK       = 0;
+        RESET     = 1;
+
+        WB_CYC    = 0;
+        WB_STB    = 0;
+        WB_WE     = 0;
+        WB_ADDR   = 0;
+        WB_DATA_IN = 0;
+
+        #12;
+        RESET = 0;
+
+        // Write data
+        wb_write(2'b00, 8'hA5);
+        wb_write(2'b01, 8'h3C);
+        wb_write(2'b10, 8'hF0);
+        wb_write(2'b11, 8'h55);
+
+        // Read data
+        wb_read(2'b00);
+        wb_read(2'b01);
+        wb_read(2'b10);
+        wb_read(2'b11);
+
+        #20;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "Time=%0t | CYC=%b | STB=%b | WE=%b | ADDR=%b | DIN=%h | DOUT=%h | ACK=%b",
+            $time,
+            WB_CYC,
+            WB_STB,
+            WB_WE,
+            WB_ADDR,
+            WB_DATA_IN,
+            WB_DATA_OUT,
+            WB_ACK
+        );
+    end
+
+endmodule
