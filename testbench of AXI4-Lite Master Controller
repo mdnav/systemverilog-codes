@@ -1,0 +1,172 @@
+`timescale 1ns/1ps
+
+module tb_axi4_lite_master;
+
+    reg CLK;
+    reg RESET;
+
+    reg START_WRITE;
+    reg START_READ;
+    reg [31:0] ADDR;
+    reg [31:0] WRITE_DATA;
+
+    wire [31:0] READ_DATA;
+    wire DONE;
+    wire BUSY;
+
+    wire [31:0] M_AXI_AWADDR;
+    wire M_AXI_AWVALID;
+    reg        M_AXI_AWREADY;
+
+    wire [31:0] M_AXI_WDATA;
+    wire M_AXI_WVALID;
+    reg        M_AXI_WREADY;
+
+    reg [1:0]  M_AXI_BRESP;
+    reg        M_AXI_BVALID;
+    wire       M_AXI_BREADY;
+
+    wire [31:0] M_AXI_ARADDR;
+    wire        M_AXI_ARVALID;
+    reg         M_AXI_ARREADY;
+
+    reg [31:0] M_AXI_RDATA;
+    reg [1:0]  M_AXI_RRESP;
+    reg        M_AXI_RVALID;
+    wire       M_AXI_RREADY;
+
+    axi4_lite_master DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+
+        .START_WRITE(START_WRITE),
+        .START_READ(START_READ),
+        .ADDR(ADDR),
+        .WRITE_DATA(WRITE_DATA),
+
+        .READ_DATA(READ_DATA),
+        .DONE(DONE),
+        .BUSY(BUSY),
+
+        .M_AXI_AWADDR(M_AXI_AWADDR),
+        .M_AXI_AWVALID(M_AXI_AWVALID),
+        .M_AXI_AWREADY(M_AXI_AWREADY),
+
+        .M_AXI_WDATA(M_AXI_WDATA),
+        .M_AXI_WVALID(M_AXI_WVALID),
+        .M_AXI_WREADY(M_AXI_WREADY),
+
+        .M_AXI_BRESP(M_AXI_BRESP),
+        .M_AXI_BVALID(M_AXI_BVALID),
+        .M_AXI_BREADY(M_AXI_BREADY),
+
+        .M_AXI_ARADDR(M_AXI_ARADDR),
+        .M_AXI_ARVALID(M_AXI_ARVALID),
+        .M_AXI_ARREADY(M_AXI_ARREADY),
+
+        .M_AXI_RDATA(M_AXI_RDATA),
+        .M_AXI_RRESP(M_AXI_RRESP),
+        .M_AXI_RVALID(M_AXI_RVALID),
+        .M_AXI_RREADY(M_AXI_RREADY)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        CLK = 0;
+        RESET = 1;
+
+        START_WRITE = 0;
+        START_READ  = 0;
+
+        ADDR = 0;
+        WRITE_DATA = 0;
+
+        M_AXI_AWREADY = 0;
+        M_AXI_WREADY  = 0;
+
+        M_AXI_BRESP  = 2'b00;
+        M_AXI_BVALID = 0;
+
+        M_AXI_ARREADY = 0;
+
+        M_AXI_RDATA  = 0;
+        M_AXI_RRESP  = 2'b00;
+        M_AXI_RVALID = 0;
+
+        #20;
+        RESET = 0;
+
+        // WRITE TRANSACTION
+        #10;
+
+        ADDR = 32'h00001000;
+        WRITE_DATA = 32'h12345678;
+
+        START_WRITE = 1;
+
+        #10;
+        START_WRITE = 0;
+
+        // Slave accepts address
+        M_AXI_AWREADY = 1;
+
+        #10;
+        M_AXI_AWREADY = 0;
+
+        // Slave accepts data
+        M_AXI_WREADY = 1;
+
+        #10;
+        M_AXI_WREADY = 0;
+
+        // Write response
+        M_AXI_BVALID = 1;
+        M_AXI_BRESP = 2'b00;
+
+        #10;
+        M_AXI_BVALID = 0;
+
+        // READ TRANSACTION
+        #20;
+
+        ADDR = 32'h00002000;
+
+        START_READ = 1;
+
+        #10;
+        START_READ = 0;
+
+        // Slave accepts read address
+        M_AXI_ARREADY = 1;
+
+        #10;
+        M_AXI_ARREADY = 0;
+
+        // Slave sends read data
+        M_AXI_RDATA = 32'hDEADBEEF;
+        M_AXI_RRESP = 2'b00;
+        M_AXI_RVALID = 1;
+
+        #10;
+        M_AXI_RVALID = 0;
+
+        #20;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "TIME=%0t | WRITE_V=%b | READ_V=%b | BUSY=%b | DONE=%b | READ_DATA=%h",
+            $time,
+            M_AXI_AWVALID,
+            M_AXI_ARVALID,
+            BUSY,
+            DONE,
+            READ_DATA
+        );
+    end
+
+endmodule
