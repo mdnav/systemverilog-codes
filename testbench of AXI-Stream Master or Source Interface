@@ -1,0 +1,123 @@
+`timescale 1ns/1ps
+
+module tb_axi_stream_master;
+
+    reg CLK;
+    reg RESET;
+
+    reg START;
+    reg [31:0] DATA_IN;
+    reg LAST_IN;
+
+    wire M_AXIS_TVALID;
+    wire [31:0] M_AXIS_TDATA;
+    wire M_AXIS_TLAST;
+    reg  M_AXIS_TREADY;
+
+    wire BUSY;
+    wire DONE;
+
+    axi_stream_master DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+
+        .START(START),
+        .DATA_IN(DATA_IN),
+        .LAST_IN(LAST_IN),
+
+        .M_AXIS_TVALID(M_AXIS_TVALID),
+        .M_AXIS_TDATA(M_AXIS_TDATA),
+        .M_AXIS_TLAST(M_AXIS_TLAST),
+        .M_AXIS_TREADY(M_AXIS_TREADY),
+
+        .BUSY(BUSY),
+        .DONE(DONE)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        CLK = 0;
+        RESET = 1;
+
+        START = 0;
+        DATA_IN = 0;
+        LAST_IN = 0;
+
+        M_AXIS_TREADY = 0;
+
+        #20;
+        RESET = 0;
+
+        // -------------------------
+        // Transfer 1
+        // -------------------------
+        #10;
+
+        DATA_IN = 32'h11111111;
+        LAST_IN = 0;
+        START = 1;
+
+        #10;
+        START = 0;
+
+        // Receiver becomes ready
+        M_AXIS_TREADY = 1;
+
+        #10;
+        M_AXIS_TREADY = 0;
+
+        // -------------------------
+        // Transfer 2
+        // -------------------------
+        #10;
+
+        DATA_IN = 32'h22222222;
+        LAST_IN = 0;
+        START = 1;
+
+        #10;
+        START = 0;
+
+        M_AXIS_TREADY = 1;
+
+        #10;
+        M_AXIS_TREADY = 0;
+
+        // -------------------------
+        // Transfer 3 - LAST
+        // -------------------------
+        #10;
+
+        DATA_IN = 32'h33333333;
+        LAST_IN = 1;
+        START = 1;
+
+        #10;
+        START = 0;
+
+        M_AXIS_TREADY = 1;
+
+        #10;
+        M_AXIS_TREADY = 0;
+
+        #20;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "TIME=%0t | VALID=%b | READY=%b | DATA=%h | LAST=%b | BUSY=%b | DONE=%b",
+            $time,
+            M_AXIS_TVALID,
+            M_AXIS_TREADY,
+            M_AXIS_TDATA,
+            M_AXIS_TLAST,
+            BUSY,
+            DONE
+        );
+    end
+
+endmodule
