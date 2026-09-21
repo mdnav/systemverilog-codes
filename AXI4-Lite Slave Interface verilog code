@@ -1,0 +1,126 @@
+`timescale 1ns/1ps
+
+module axi_lite_slave (
+    input        CLK,
+    input        RESET,
+
+    // Write address channel
+    input        AWVALID,
+    input  [1:0]  AWADDR,
+    output reg   AWREADY,
+
+    // Write data channel
+    input        WVALID,
+    input  [7:0] WDATA,
+    output reg   WREADY,
+
+    // Write response
+    output reg   BVALID,
+    input        BREADY,
+
+    // Read address channel
+    input        ARVALID,
+    input  [1:0]  ARADDR,
+    output reg   ARREADY,
+
+    // Read data channel
+    output reg [7:0] RDATA,
+    output reg       RVALID,
+    input            RREADY
+);
+
+    reg [7:0] REG0;
+    reg [7:0] REG1;
+    reg [7:0] REG2;
+    reg [7:0] REG3;
+
+    reg [1:0] write_addr;
+    reg       write_addr_valid;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+
+            REG0 <= 8'h00;
+            REG1 <= 8'h00;
+            REG2 <= 8'h00;
+            REG3 <= 8'h00;
+
+            AWREADY <= 1'b0;
+            WREADY  <= 1'b0;
+            BVALID  <= 1'b0;
+
+            ARREADY <= 1'b0;
+            RDATA   <= 8'h00;
+            RVALID  <= 1'b0;
+
+            write_addr       <= 2'b00;
+            write_addr_valid <= 1'b0;
+        end
+
+        else begin
+
+            AWREADY <= 1'b0;
+            WREADY  <= 1'b0;
+            ARREADY <= 1'b0;
+
+            // -------------------------
+            // WRITE ADDRESS CHANNEL
+            // -------------------------
+            if (AWVALID && !write_addr_valid && !BVALID) begin
+                write_addr       <= AWADDR;
+                write_addr_valid <= 1'b1;
+                AWREADY          <= 1'b1;
+            end
+
+            // -------------------------
+            // WRITE DATA CHANNEL
+            // -------------------------
+            if (WVALID && write_addr_valid && !BVALID) begin
+
+                WREADY <= 1'b1;
+
+                case (write_addr)
+                    2'b00: REG0 <= WDATA;
+                    2'b01: REG1 <= WDATA;
+                    2'b10: REG2 <= WDATA;
+                    2'b11: REG3 <= WDATA;
+                endcase
+
+                write_addr_valid <= 1'b0;
+                BVALID           <= 1'b1;
+            end
+
+            // -------------------------
+            // WRITE RESPONSE
+            // -------------------------
+            if (BVALID && BREADY) begin
+                BVALID <= 1'b0;
+            end
+
+            // -------------------------
+            // READ ADDRESS CHANNEL
+            // -------------------------
+            if (ARVALID && !RVALID) begin
+
+                ARREADY <= 1'b1;
+                RVALID  <= 1'b1;
+
+                case (ARADDR)
+                    2'b00: RDATA <= REG0;
+                    2'b01: RDATA <= REG1;
+                    2'b10: RDATA <= REG2;
+                    2'b11: RDATA <= REG3;
+                endcase
+            end
+
+            // -------------------------
+            // READ RESPONSE
+            // -------------------------
+            if (RVALID && RREADY) begin
+                RVALID <= 1'b0;
+            end
+
+        end
+    end
+
+endmodule
