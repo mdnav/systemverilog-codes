@@ -1,0 +1,159 @@
+module axi4_lite_master (
+    input  wire        CLK,
+    input  wire        RESET,
+
+    // Control interface
+    input  wire        START_WRITE,
+    input  wire        START_READ,
+    input  wire [31:0] ADDR,
+    input  wire [31:0] WRITE_DATA,
+
+    output reg  [31:0] READ_DATA,
+    output reg         DONE,
+    output reg         BUSY,
+
+    // AXI4-Lite Write Address Channel
+    output reg  [31:0] M_AXI_AWADDR,
+    output reg         M_AXI_AWVALID,
+    input  wire         M_AXI_AWREADY,
+
+    // AXI4-Lite Write Data Channel
+    output reg  [31:0] M_AXI_WDATA,
+    output reg         M_AXI_WVALID,
+    input  wire         M_AXI_WREADY,
+
+    // AXI4-Lite Write Response Channel
+    input  wire [1:0]   M_AXI_BRESP,
+    input  wire         M_AXI_BVALID,
+    output reg         M_AXI_BREADY,
+
+    // AXI4-Lite Read Address Channel
+    output reg  [31:0] M_AXI_ARADDR,
+    output reg         M_AXI_ARVALID,
+    input  wire         M_AXI_ARREADY,
+
+    // AXI4-Lite Read Data Channel
+    input  wire [31:0]  M_AXI_RDATA,
+    input  wire [1:0]   M_AXI_RRESP,
+    input  wire         M_AXI_RVALID,
+    output reg          M_AXI_RREADY
+);
+
+    localparam IDLE       = 3'd0;
+    localparam WRITE_ADDR = 3'd1;
+    localparam WRITE_DATA = 3'd2;
+    localparam WRITE_RESP = 3'd3;
+    localparam READ_ADDR  = 3'd4;
+    localparam READ_DATA  = 3'd5;
+
+    reg [2:0] state;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            state          <= IDLE;
+
+            READ_DATA      <= 32'd0;
+            DONE           <= 1'b0;
+            BUSY           <= 1'b0;
+
+            M_AXI_AWADDR   <= 32'd0;
+            M_AXI_AWVALID  <= 1'b0;
+
+            M_AXI_WDATA    <= 32'd0;
+            M_AXI_WVALID   <= 1'b0;
+
+            M_AXI_BREADY   <= 1'b0;
+
+            M_AXI_ARADDR   <= 32'd0;
+            M_AXI_ARVALID  <= 1'b0;
+
+            M_AXI_RREADY   <= 1'b0;
+        end
+        else begin
+
+            DONE <= 1'b0;
+
+            case (state)
+
+                IDLE: begin
+                    BUSY <= 1'b0;
+
+                    if (START_WRITE) begin
+                        BUSY <= 1'b1;
+
+                        M_AXI_AWADDR  <= ADDR;
+                        M_AXI_AWVALID <= 1'b1;
+
+                        M_AXI_WDATA   <= WRITE_DATA;
+                        M_AXI_WVALID  <= 1'b1;
+
+                        state <= WRITE_ADDR;
+                    end
+                    else if (START_READ) begin
+                        BUSY <= 1'b1;
+
+                        M_AXI_ARADDR  <= ADDR;
+                        M_AXI_ARVALID <= 1'b1;
+
+                        state <= READ_ADDR;
+                    end
+                end
+
+                WRITE_ADDR: begin
+                    if (M_AXI_AWREADY) begin
+                        M_AXI_AWVALID <= 1'b0;
+                        state <= WRITE_DATA;
+                    end
+                end
+
+                WRITE_DATA: begin
+                    if (M_AXI_WREADY) begin
+                        M_AXI_WVALID <= 1'b0;
+                        M_AXI_BREADY <= 1'b1;
+
+                        state <= WRITE_RESP;
+                    end
+                end
+
+                WRITE_RESP: begin
+                    if (M_AXI_BVALID) begin
+                        M_AXI_BREADY <= 1'b0;
+                        DONE <= 1'b1;
+                        BUSY <= 1'b0;
+
+                        state <= IDLE;
+                    end
+                end
+
+                READ_ADDR: begin
+                    if (M_AXI_ARREADY) begin
+                        M_AXI_ARVALID <= 1'b0;
+                        M_AXI_RREADY  <= 1'b1;
+
+                        state <= READ_DATA;
+                    end
+                end
+
+                READ_DATA: begin
+                    if (M_AXI_RVALID) begin
+                        READ_DATA <= M_AXI_RDATA;
+
+                        M_AXI_RREADY <= 1'b0;
+
+                        DONE <= 1'b1;
+                        BUSY <= 1'b0;
+
+                        state <= IDLE;
+                    end
+                end
+
+                default: begin
+                    state <= IDLE;
+                    BUSY  <= 1'b0;
+                end
+
+            endcase
+        end
+    end
+
+endmodule
