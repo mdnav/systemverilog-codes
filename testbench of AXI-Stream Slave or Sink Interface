@@ -1,0 +1,104 @@
+`timescale 1ns/1ps
+
+module tb_axi_stream_slave;
+
+    reg CLK;
+    reg RESET;
+
+    reg        S_AXIS_TVALID;
+    reg [31:0] S_AXIS_TDATA;
+    reg        S_AXIS_TLAST;
+
+    wire       S_AXIS_TREADY;
+
+    wire [31:0] DATA_OUT;
+    wire        DATA_VALID;
+    wire        PACKET_DONE;
+
+    axi_stream_slave DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+
+        .S_AXIS_TVALID(S_AXIS_TVALID),
+        .S_AXIS_TDATA(S_AXIS_TDATA),
+        .S_AXIS_TLAST(S_AXIS_TLAST),
+
+        .S_AXIS_TREADY(S_AXIS_TREADY),
+
+        .DATA_OUT(DATA_OUT),
+        .DATA_VALID(DATA_VALID),
+        .PACKET_DONE(PACKET_DONE)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+
+        S_AXIS_TVALID = 0;
+        S_AXIS_TDATA  = 32'd0;
+        S_AXIS_TLAST  = 0;
+
+        #20;
+        RESET = 0;
+
+        // -------------------------
+        // Receive data 1
+        // -------------------------
+        #10;
+
+        S_AXIS_TDATA  = 32'hAAAA1111;
+        S_AXIS_TLAST  = 0;
+        S_AXIS_TVALID = 1;
+
+        #10;
+
+        S_AXIS_TVALID = 0;
+
+        // -------------------------
+        // Receive data 2
+        // -------------------------
+        #10;
+
+        S_AXIS_TDATA  = 32'hBBBB2222;
+        S_AXIS_TLAST  = 0;
+        S_AXIS_TVALID = 1;
+
+        #10;
+
+        S_AXIS_TVALID = 0;
+
+        // -------------------------
+        // Receive final data
+        // -------------------------
+        #10;
+
+        S_AXIS_TDATA  = 32'hCCCC3333;
+        S_AXIS_TLAST  = 1;
+        S_AXIS_TVALID = 1;
+
+        #10;
+
+        S_AXIS_TVALID = 0;
+        S_AXIS_TLAST  = 0;
+
+        #20;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "TIME=%0t | VALID=%b | READY=%b | DATA=%h | TLAST=%b | DATA_VALID=%b | PACKET_DONE=%b",
+            $time,
+            S_AXIS_TVALID,
+            S_AXIS_TREADY,
+            S_AXIS_TDATA,
+            S_AXIS_TLAST,
+            DATA_VALID,
+            PACKET_DONE
+        );
+    end
+
+endmodule
