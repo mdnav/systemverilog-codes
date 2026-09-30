@@ -1,0 +1,74 @@
+`timescale 1ns/1ps
+
+module tb_can_transmitter;
+
+    reg CLK;
+    reg RESET;
+
+    reg START;
+    reg [10:0] ID;
+    reg [3:0] DLC;
+    reg [63:0] DATA;
+
+    wire CAN_TX;
+    wire BUSY;
+    wire DONE;
+
+    can_transmitter DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+
+        .START(START),
+        .ID(ID),
+        .DLC(DLC),
+        .DATA(DATA),
+
+        .CAN_TX(CAN_TX),
+        .BUSY(BUSY),
+        .DONE(DONE)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+
+        START = 0;
+        ID = 11'd0;
+        DLC = 4'd0;
+        DATA = 64'd0;
+
+        #20;
+        RESET = 0;
+
+        // CAN frame
+        #10;
+
+        ID   = 11'b10101010101;
+        DLC  = 4'd2;
+        DATA = 64'hAABB000000000000;
+
+        START = 1;
+
+        #10;
+        START = 0;
+
+        wait(DONE);
+
+        #20;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "TIME=%0t | TX=%b | BUSY=%b | DONE=%b",
+            $time,
+            CAN_TX,
+            BUSY,
+            DONE
+        );
+    end
+
+endmodule
