@@ -1,0 +1,140 @@
+module can_transmitter (
+    input  wire        CLK,
+    input  wire        RESET,
+
+    input  wire        START,
+    input  wire [10:0] ID,
+    input  wire [3:0]  DLC,
+    input  wire [63:0] DATA,
+
+    output reg         CAN_TX,
+    output reg         BUSY,
+    output reg         DONE
+);
+
+    localparam IDLE  = 3'd0;
+    localparam START_BIT = 3'd1;
+    localparam ID_FIELD  = 3'd2;
+    localparam CONTROL   = 3'd3;
+    localparam DATA_FIELD = 3'd4;
+    localparam END_FRAME = 3'd5;
+
+    reg [2:0] state;
+
+    reg [10:0] id_reg;
+    reg [3:0]  dlc_reg;
+    reg [63:0] data_reg;
+
+    reg [3:0] bit_count;
+    reg [3:0] byte_count;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            CAN_TX    <= 1'b1;
+            BUSY      <= 1'b0;
+            DONE      <= 1'b0;
+
+            state     <= IDLE;
+
+            id_reg    <= 11'd0;
+            dlc_reg   <= 4'd0;
+            data_reg  <= 64'd0;
+
+            bit_count <= 4'd0;
+            byte_count <= 4'd0;
+        end
+        else begin
+            DONE <= 1'b0;
+
+            case (state)
+
+                IDLE: begin
+                    CAN_TX <= 1'b1;
+                    BUSY   <= 1'b0;
+
+                    if (START) begin
+                        id_reg     <= ID;
+                        dlc_reg    <= DLC;
+                        data_reg   <= DATA;
+
+                        bit_count  <= 4'd0;
+                        byte_count <= 4'd0;
+
+                        BUSY  <= 1'b1;
+                        state <= START_BIT;
+                    end
+                end
+
+                // CAN Start of Frame = dominant 0
+                START_BIT: begin
+                    CAN_TX <= 1'b0;
+
+                    bit_count <= 4'd0;
+                    state <= ID_FIELD;
+                end
+
+                // Transmit 11-bit identifier, MSB first
+                ID_FIELD: begin
+                    CAN_TX <= id_reg[10 - bit_count];
+
+                    if (bit_count == 4'd10) begin
+                        bit_count <= 4'd0;
+                        state <= CONTROL;
+                    end
+                    else begin
+                        bit_count <= bit_count + 1'b1;
+                    end
+                end
+
+                // Simplified control field
+                CONTROL: begin
+                    CAN_TX <= 1'b0;
+
+                    bit_count <= 4'd0;
+                    byte_count <= 4'd0;
+
+                    if (dlc_reg == 0)
+                        state <= END_FRAME;
+                    else
+                        state <= DATA_FIELD;
+                end
+
+                // Transmit data bytes, MSB first
+                DATA_FIELD: begin
+                    CAN_TX <= data_reg[63 - (byte_count * 8) - bit_count];
+
+                    if (bit_count == 4'd7) begin
+                        bit_count <= 4'd0;
+
+                        if (byte_count == dlc_reg - 1) begin
+                            state <= END_FRAME;
+                        end
+                        else begin
+                            byte_count <= byte_count + 1'b1;
+                        end
+                    end
+                    else begin
+                        bit_count <= bit_count + 1'b1;
+                    end
+                end
+
+                // Simplified end of frame
+                END_FRAME: begin
+                    CAN_TX <= 1'b1;
+                    BUSY   <= 1'b0;
+                    DONE   <= 1'b1;
+
+                    state <= IDLE;
+                end
+
+                default: begin
+                    state <= IDLE;
+                    CAN_TX <= 1'b1;
+                    BUSY <= 1'b0;
+                end
+
+            endcase
+        end
+    end
+
+endmodule
