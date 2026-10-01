@@ -1,0 +1,95 @@
+`timescale 1ns/1ps
+
+module tb_ps2_keyboard;
+
+    reg CLK;
+    reg RESET;
+
+    reg PS2_CLK;
+    reg PS2_DATA;
+
+    wire [7:0] SCAN_CODE;
+    wire DATA_VALID;
+    wire FRAME_ERROR;
+
+    ps2_keyboard DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+
+        .PS2_CLK(PS2_CLK),
+        .PS2_DATA(PS2_DATA),
+
+        .SCAN_CODE(SCAN_CODE),
+        .DATA_VALID(DATA_VALID),
+        .FRAME_ERROR(FRAME_ERROR)
+    );
+
+    always #5 CLK = ~CLK;
+
+    // Send one PS/2 bit
+    task send_bit;
+        input DATA_BIT;
+        begin
+            PS2_DATA = DATA_BIT;
+
+            #20;
+            PS2_CLK = 1'b0;
+
+            #20;
+            PS2_CLK = 1'b1;
+        end
+    endtask
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+
+        PS2_CLK  = 1;
+        PS2_DATA = 1;
+
+        #30;
+        RESET = 0;
+
+        // ------------------------------------------------
+        // Send PS/2 scan code 1C
+        // Start = 0
+        // Data  = 00011100
+        // Parity = 1
+        // Stop  = 1
+        // ------------------------------------------------
+
+        send_bit(1'b0);
+
+        send_bit(1'b0);
+        send_bit(1'b0);
+        send_bit(1'b1);
+        send_bit(1'b1);
+        send_bit(1'b1);
+        send_bit(1'b0);
+        send_bit(1'b0);
+        send_bit(1'b0);
+
+        // Odd parity
+        send_bit(1'b1);
+
+        // Stop bit
+        send_bit(1'b1);
+
+        #50;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "TIME=%0t | PS2_CLK=%b | PS2_DATA=%b | SCAN_CODE=%h | VALID=%b | ERROR=%b",
+            $time,
+            PS2_CLK,
+            PS2_DATA,
+            SCAN_CODE,
+            DATA_VALID,
+            FRAME_ERROR
+        );
+    end
+
+endmodule
