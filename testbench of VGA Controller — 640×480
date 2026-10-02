@@ -1,0 +1,57 @@
+`timescale 1ns/1ps
+
+module tb_vga_controller;
+
+    reg CLK;
+    reg RESET;
+
+    wire VGA_HSYNC;
+    wire VGA_VSYNC;
+
+    wire [9:0] VGA_X;
+    wire [9:0] VGA_Y;
+
+    wire VGA_ACTIVE;
+
+    vga_controller DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+
+        .VGA_HSYNC(VGA_HSYNC),
+        .VGA_VSYNC(VGA_VSYNC),
+
+        .VGA_X(VGA_X),
+        .VGA_Y(VGA_Y),
+
+        .VGA_ACTIVE(VGA_ACTIVE)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+
+        CLK = 0;
+        RESET = 1;
+
+        #20;
+        RESET = 0;
+
+        // Run for more than one horizontal line
+        #10000;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "TIME=%0t | X=%d | Y=%d | ACTIVE=%b | HSYNC=%b | VSYNC=%b",
+            $time,
+            VGA_X,
+            VGA_Y,
+            VGA_ACTIVE,
+            VGA_HSYNC,
+            VGA_VSYNC
+        );
+    end
+
+endmodule
