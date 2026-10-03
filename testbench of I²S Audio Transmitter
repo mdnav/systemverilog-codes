@@ -1,0 +1,79 @@
+`timescale 1ns/1ps
+
+module tb_i2s_transmitter;
+
+    reg CLK;
+    reg RESET;
+
+    reg START;
+    reg [15:0] LEFT_DATA;
+    reg [15:0] RIGHT_DATA;
+
+    wire I2S_SCK;
+    wire I2S_WS;
+    wire I2S_SD;
+
+    wire BUSY;
+    wire DONE;
+
+    i2s_transmitter DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+
+        .START(START),
+        .LEFT_DATA(LEFT_DATA),
+        .RIGHT_DATA(RIGHT_DATA),
+
+        .I2S_SCK(I2S_SCK),
+        .I2S_WS(I2S_WS),
+        .I2S_SD(I2S_SD),
+
+        .BUSY(BUSY),
+        .DONE(DONE)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+
+        START = 0;
+        LEFT_DATA = 16'd0;
+        RIGHT_DATA = 16'd0;
+
+        #20;
+        RESET = 0;
+
+        // Load stereo audio samples
+        #10;
+
+        LEFT_DATA  = 16'h1234;
+        RIGHT_DATA = 16'hABCD;
+
+        START = 1;
+
+        #10;
+        START = 0;
+
+        // Wait for complete transmission
+        wait(DONE);
+
+        #20;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "TIME=%0t | SCK=%b | WS=%b | SD=%b | BUSY=%b | DONE=%b",
+            $time,
+            I2S_SCK,
+            I2S_WS,
+            I2S_SD,
+            BUSY,
+            DONE
+        );
+    end
+
+endmodule
