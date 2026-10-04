@@ -1,0 +1,203 @@
+module ethernet_mii_tx (
+    input  wire        CLK,
+    input  wire        RESET,
+
+    input  wire        START,
+
+    input  wire [47:0] DEST_MAC,
+    input  wire [47:0] SRC_MAC,
+    input  wire [15:0] ETH_TYPE,
+    input  wire [31:0] PAYLOAD,
+
+    output reg  [3:0]  TXD,
+    output reg         TX_EN,
+
+    output reg         BUSY,
+    output reg         DONE
+);
+
+    localparam IDLE    = 3'd0;
+    localparam PREAMBLE = 3'd1;
+    localparam HEADER  = 3'd2;
+    localparam PAYLOAD_STATE = 3'd3;
+    localparam FCS     = 3'd4;
+    localparam FINISH  = 3'd5;
+
+    reg [2:0] state;
+
+    reg [47:0] dest_mac_reg;
+    reg [47:0] src_mac_reg;
+    reg [15:0] eth_type_reg;
+    reg [31:0] payload_reg;
+
+    reg [5:0] nibble_count;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            state        <= IDLE;
+
+            TXD          <= 4'h0;
+            TX_EN        <= 1'b0;
+
+            BUSY         <= 1'b0;
+            DONE         <= 1'b0;
+
+            dest_mac_reg <= 48'd0;
+            src_mac_reg  <= 48'd0;
+            eth_type_reg <= 16'd0;
+            payload_reg  <= 32'd0;
+
+            nibble_count <= 6'd0;
+        end
+        else begin
+
+            DONE <= 1'b0;
+
+            case (state)
+
+                IDLE: begin
+                    TXD   <= 4'h0;
+                    TX_EN <= 1'b0;
+                    BUSY  <= 1'b0;
+
+                    if (START) begin
+                        dest_mac_reg <= DEST_MAC;
+                        src_mac_reg  <= SRC_MAC;
+                        eth_type_reg <= ETH_TYPE;
+                        payload_reg  <= PAYLOAD;
+
+                        nibble_count <= 6'd0;
+
+                        BUSY  <= 1'b1;
+                        TX_EN <= 1'b1;
+
+                        state <= PREAMBLE;
+                    end
+                end
+
+                // Ethernet preamble + SFD
+                PREAMBLE: begin
+                    TX_EN <= 1'b1;
+
+                    // 0x55 preamble
+                    TXD <= 4'h5;
+
+                    if (nibble_count == 6'd13) begin
+                        TXD <= 4'hD;
+                        nibble_count <= 6'd0;
+                        state <= HEADER;
+                    end
+                    else begin
+                        nibble_count <= nibble_count + 1'b1;
+                    end
+                end
+
+                // Destination MAC, Source MAC and EtherType
+                HEADER: begin
+                    TX_EN <= 1'b1;
+
+                    case (nibble_count)
+
+                        0: TXD <= dest_mac_reg[47:44];
+                        1: TXD <= dest_mac_reg[43:40];
+                        2: TXD <= dest_mac_reg[39:36];
+                        3: TXD <= dest_mac_reg[35:32];
+                        4: TXD <= dest_mac_reg[31:28];
+                        5: TXD <= dest_mac_reg[27:24];
+                        6: TXD <= dest_mac_reg[23:20];
+                        7: TXD <= dest_mac_reg[19:16];
+                        8: TXD <= dest_mac_reg[15:12];
+                        9: TXD <= dest_mac_reg[11:8];
+                        10: TXD <= dest_mac_reg[7:4];
+                        11: TXD <= dest_mac_reg[3:0];
+
+                        12: TXD <= src_mac_reg[47:44];
+                        13: TXD <= src_mac_reg[43:40];
+                        14: TXD <= src_mac_reg[39:36];
+                        15: TXD <= src_mac_reg[35:32];
+                        16: TXD <= src_mac_reg[31:28];
+                        17: TXD <= src_mac_reg[27:24];
+                        18: TXD <= src_mac_reg[23:20];
+                        19: TXD <= src_mac_reg[19:16];
+                        20: TXD <= src_mac_reg[15:12];
+                        21: TXD <= src_mac_reg[11:8];
+                        22: TXD <= src_mac_reg[7:4];
+                        23: TXD <= src_mac_reg[3:0];
+
+                        24: TXD <= eth_type_reg[15:12];
+                        25: TXD <= eth_type_reg[11:8];
+                        26: TXD <= eth_type_reg[7:4];
+                        27: TXD <= eth_type_reg[3:0];
+
+                    endcase
+
+                    if (nibble_count == 6'd27) begin
+                        nibble_count <= 6'd0;
+                        state <= PAYLOAD_STATE;
+                    end
+                    else begin
+                        nibble_count <= nibble_count + 1'b1;
+                    end
+                end
+
+                // 32-bit demonstration payload
+                PAYLOAD_STATE: begin
+                    TX_EN <= 1'b1;
+
+                    case (nibble_count)
+
+                        0: TXD <= payload_reg[31:28];
+                        1: TXD <= payload_reg[27:24];
+                        2: TXD <= payload_reg[23:20];
+                        3: TXD <= payload_reg[19:16];
+                        4: TXD <= payload_reg[15:12];
+                        5: TXD <= payload_reg[11:8];
+                        6: TXD <= payload_reg[7:4];
+                        7: TXD <= payload_reg[3:0];
+
+                    endcase
+
+                    if (nibble_count == 6'd7) begin
+                        nibble_count <= 6'd0;
+                        state <= FCS;
+                    end
+                    else begin
+                        nibble_count <= nibble_count + 1'b1;
+                    end
+                end
+
+                // Simplified FCS placeholder
+                FCS: begin
+                    TX_EN <= 1'b1;
+                    TXD <= 4'h0;
+
+                    if (nibble_count == 6'd7) begin
+                        state <= FINISH;
+                    end
+                    else begin
+                        nibble_count <= nibble_count + 1'b1;
+                    end
+                end
+
+                FINISH: begin
+                    TXD   <= 4'h0;
+                    TX_EN <= 1'b0;
+
+                    BUSY <= 1'b0;
+                    DONE <= 1'b1;
+
+                    state <= IDLE;
+                end
+
+                default: begin
+                    state <= IDLE;
+                    TXD   <= 4'h0;
+                    TX_EN <= 1'b0;
+                    BUSY  <= 1'b0;
+                end
+
+            endcase
+        end
+    end
+
+endmodule
