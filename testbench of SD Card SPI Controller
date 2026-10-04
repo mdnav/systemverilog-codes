@@ -1,0 +1,89 @@
+`timescale 1ns/1ps
+
+module tb_sd_spi_controller;
+
+    reg CLK;
+    reg RESET;
+    reg START;
+
+    reg SD_MISO;
+
+    wire SD_SCLK;
+    wire SD_MOSI;
+    wire SD_CS;
+
+    wire BUSY;
+    wire DONE;
+
+    wire [7:0] RESPONSE;
+
+    sd_spi_controller DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .START(START),
+
+        .SD_MISO(SD_MISO),
+
+        .SD_SCLK(SD_SCLK),
+        .SD_MOSI(SD_MOSI),
+        .SD_CS(SD_CS),
+
+        .BUSY(BUSY),
+        .DONE(DONE),
+
+        .RESPONSE(RESPONSE)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+        START = 0;
+
+        // SD card normally keeps MISO HIGH when idle
+        SD_MISO = 1;
+
+        #20;
+
+        RESET = 0;
+
+        #20;
+
+        // Start SD-card initialization
+        START = 1;
+
+        #10;
+
+        START = 0;
+
+        // Simulate SD-card response
+        // R1 response = 01
+        #1000;
+
+        SD_MISO = 0;
+
+        #20;
+
+        SD_MISO = 1;
+
+        #100;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "TIME=%0t | CS=%b | SCLK=%b | MOSI=%b | MISO=%b | BUSY=%b | DONE=%b | RESPONSE=%h",
+            $time,
+            SD_CS,
+            SD_SCLK,
+            SD_MOSI,
+            SD_MISO,
+            BUSY,
+            DONE,
+            RESPONSE
+        );
+    end
+
+endmodule
