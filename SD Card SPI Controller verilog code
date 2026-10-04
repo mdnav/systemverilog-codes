@@ -1,0 +1,155 @@
+module sd_spi_controller (
+    input  wire       CLK,
+    input  wire       RESET,
+    input  wire       START,
+
+    input  wire       SD_MISO,
+
+    output reg        SD_SCLK,
+    output reg        SD_MOSI,
+    output reg        SD_CS,
+
+    output reg        BUSY,
+    output reg        DONE,
+
+    output reg [7:0]  RESPONSE
+);
+
+    localparam IDLE       = 3'd0;
+    localparam SEND_CMD0  = 3'd1;
+    localparam WAIT_CMD0  = 3'd2;
+    localparam SEND_CMD8  = 3'd3;
+    localparam WAIT_CMD8  = 3'd4;
+    localparam COMPLETE   = 3'd5;
+
+    reg [2:0] state;
+
+    reg [47:0] command;
+    reg [5:0]  bit_count;
+    reg [7:0]  response_reg;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            state       <= IDLE;
+
+            SD_SCLK     <= 1'b0;
+            SD_MOSI     <= 1'b1;
+            SD_CS       <= 1'b1;
+
+            BUSY        <= 1'b0;
+            DONE        <= 1'b0;
+
+            RESPONSE    <= 8'hFF;
+
+            command     <= 48'd0;
+            bit_count   <= 6'd0;
+            response_reg <= 8'hFF;
+        end
+        else begin
+            DONE <= 1'b0;
+
+            case (state)
+
+                IDLE: begin
+                    SD_CS   <= 1'b1;
+                    SD_SCLK <= 1'b0;
+                    SD_MOSI <= 1'b1;
+                    BUSY    <= 1'b0;
+
+                    if (START) begin
+                        BUSY      <= 1'b1;
+                        SD_CS     <= 1'b0;
+
+                        // CMD0:
+                        // 01 000000 00000000 00000000 00000000 95
+                        command   <= 48'h400000000095;
+                        bit_count <= 6'd47;
+
+                        state <= SEND_CMD0;
+                    end
+                end
+
+                SEND_CMD0: begin
+                    SD_MOSI <= command[bit_count];
+
+                    SD_SCLK <= ~SD_SCLK;
+
+                    if (SD_SCLK == 1'b1) begin
+                        if (bit_count == 0) begin
+                            bit_count <= 6'd0;
+                            state <= WAIT_CMD0;
+                        end
+                        else begin
+                            bit_count <= bit_count - 1'b1;
+                        end
+                    end
+                end
+
+                WAIT_CMD0: begin
+                    SD_SCLK <= ~SD_SCLK;
+
+                    SD_MOSI <= 1'b1;
+
+                    if (SD_MISO != 1'b1) begin
+                        response_reg <= {7'd0, SD_MISO};
+                        RESPONSE <= {7'd0, SD_MISO};
+
+                        // CMD8
+                        command <= 48'h48000001AA;
+                        bit_count <= 6'd47;
+
+                        state <= SEND_CMD8;
+                    end
+                end
+
+                SEND_CMD8: begin
+                    SD_MOSI <= command[bit_count];
+
+                    SD_SCLK <= ~SD_SCLK;
+
+                    if (SD_SCLK == 1'b1) begin
+                        if (bit_count == 0) begin
+                            bit_count <= 6'd0;
+                            state <= WAIT_CMD8;
+                        end
+                        else begin
+                            bit_count <= bit_count - 1'b1;
+                        end
+                    end
+                end
+
+                WAIT_CMD8: begin
+                    SD_SCLK <= ~SD_SCLK;
+
+                    SD_MOSI <= 1'b1;
+
+                    if (SD_MISO != 1'b1) begin
+                        RESPONSE <= {7'd0, SD_MISO};
+                        state <= COMPLETE;
+                    end
+                end
+
+                COMPLETE: begin
+                    SD_CS   <= 1'b1;
+                    SD_SCLK <= 1'b0;
+                    SD_MOSI <= 1'b1;
+
+                    BUSY <= 1'b0;
+                    DONE <= 1'b1;
+
+                    state <= IDLE;
+                end
+
+                default: begin
+                    state <= IDLE;
+                    SD_CS <= 1'b1;
+                    SD_SCLK <= 1'b0;
+                    SD_MOSI <= 1'b1;
+                    BUSY <= 1'b0;
+                end
+
+            endcase
+        end
+    end
+
+endmodule
