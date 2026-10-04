@@ -1,0 +1,82 @@
+`timescale 1ns/1ps
+
+module tb_ethernet_mii_tx;
+
+    reg CLK;
+    reg RESET;
+    reg START;
+
+    reg [47:0] DEST_MAC;
+    reg [47:0] SRC_MAC;
+    reg [15:0] ETH_TYPE;
+    reg [31:0] PAYLOAD;
+
+    wire [3:0] TXD;
+    wire TX_EN;
+
+    wire BUSY;
+    wire DONE;
+
+    ethernet_mii_tx DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+        .START(START),
+
+        .DEST_MAC(DEST_MAC),
+        .SRC_MAC(SRC_MAC),
+        .ETH_TYPE(ETH_TYPE),
+        .PAYLOAD(PAYLOAD),
+
+        .TXD(TXD),
+        .TX_EN(TX_EN),
+
+        .BUSY(BUSY),
+        .DONE(DONE)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+        START = 0;
+
+        DEST_MAC = 48'd0;
+        SRC_MAC  = 48'd0;
+        ETH_TYPE = 16'd0;
+        PAYLOAD  = 32'd0;
+
+        #20;
+        RESET = 0;
+
+        #10;
+
+        DEST_MAC = 48'hFFFFFFFFFFFF;
+        SRC_MAC  = 48'h001122334455;
+        ETH_TYPE = 16'h0800;
+        PAYLOAD  = 32'h12345678;
+
+        START = 1;
+
+        #10;
+        START = 0;
+
+        wait(DONE);
+
+        #20;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "TIME=%0t | TX_EN=%b | TXD=%h | BUSY=%b | DONE=%b",
+            $time,
+            TX_EN,
+            TXD,
+            BUSY,
+            DONE
+        );
+    end
+
+endmodule
