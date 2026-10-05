@@ -1,0 +1,50 @@
+`timescale 1ns/1ps
+
+module tb_quadrature_encoder;
+
+    reg CLK;
+    reg RESET;
+    reg A;
+    reg B;
+
+    wire [7:0] POSITION;
+
+    quadrature_encoder uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .A(A),
+        .B(B),
+        .POSITION(POSITION)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK   = 0;
+        RESET = 1;
+        A     = 0;
+        B     = 0;
+
+        #15 RESET = 0;
+
+        // Clockwise sequence
+        #10 A = 0; B = 1;
+        #10 A = 1; B = 1;
+        #10 A = 1; B = 0;
+        #10 A = 0; B = 0;
+
+        // Counter-clockwise sequence
+        #10 A = 1; B = 0;
+        #10 A = 1; B = 1;
+        #10 A = 0; B = 1;
+        #10 A = 0; B = 0;
+
+        #20 $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t A=%b B=%b POSITION=%d",
+                 $time, A, B, POSITION);
+    end
+
+endmodule
