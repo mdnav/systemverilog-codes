@@ -1,0 +1,44 @@
+`timescale 1ns/1ps
+
+module tb_one_wire_master;
+
+    reg CLK;
+    reg RESET;
+    reg slave_drive;
+
+    wire ONE_WIRE;
+    wire PRESENCE;
+    wire BUSY;
+
+    assign ONE_WIRE = slave_drive ? 1'b0 : 1'bz;
+
+    one_wire_master uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .ONE_WIRE(ONE_WIRE),
+        .PRESENCE(PRESENCE),
+        .BUSY(BUSY)
+    );
+
+    always #1 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+        slave_drive = 0;
+
+        #10 RESET = 0;
+
+        // Simulate 1-Wire slave presence pulse
+        #520 slave_drive = 1;
+        #50  slave_drive = 0;
+
+        #100 $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t BUSY=%b ONE_WIRE=%b PRESENCE=%b",
+                 $time, BUSY, ONE_WIRE, PRESENCE);
+    end
+
+endmodule
