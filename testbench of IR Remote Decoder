@@ -1,0 +1,50 @@
+`timescale 1ns/1ps
+
+module tb_ir_remote_decoder;
+
+    reg CLK;
+    reg RESET;
+    reg IR_IN;
+
+    wire [7:0] COMMAND;
+    wire VALID;
+
+    ir_remote_decoder uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .IR_IN(IR_IN),
+        .COMMAND(COMMAND),
+        .VALID(VALID)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK   = 0;
+        RESET = 1;
+        IR_IN = 1;
+
+        #20 RESET = 0;
+
+        // Start reception
+        #20 IR_IN = 0;
+
+        // Send 8-bit command: 10110101
+        #1010 IR_IN = 1;
+        #1010 IR_IN = 0;
+        #1010 IR_IN = 1;
+        #1010 IR_IN = 1;
+        #1010 IR_IN = 0;
+        #1010 IR_IN = 1;
+        #1010 IR_IN = 0;
+        #1010 IR_IN = 1;
+
+        #2000 $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t IR=%b COMMAND=%b VALID=%b",
+                 $time, IR_IN, COMMAND, VALID);
+    end
+
+endmodule
