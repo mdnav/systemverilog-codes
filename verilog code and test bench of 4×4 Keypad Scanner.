@@ -1,0 +1,75 @@
+// verilog code
+module keypad_4x4_scanner (
+    input        CLK,
+    input        RESET,
+    input  [3:0] COL,
+    output reg [3:0] ROW,
+    output reg [3:0] KEY
+);
+
+    reg [1:0] row_index;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            row_index <= 2'b00;
+            ROW       <= 4'b1110;
+            KEY       <= 4'b0000;
+        end
+        else begin
+            case (row_index)
+                2'b00: ROW <= 4'b1110;
+                2'b01: ROW <= 4'b1101;
+                2'b10: ROW <= 4'b1011;
+                2'b11: ROW <= 4'b0111;
+            endcase
+
+            if (COL != 4'b1111)
+                KEY <= COL;
+
+            row_index <= row_index + 1'b1;
+        end
+    end
+
+endmodule
+// testbench 
+`timescale 1ns/1ps
+
+module tb_keypad_4x4_scanner;
+
+    reg CLK;
+    reg RESET;
+    reg [3:0] COL;
+
+    wire [3:0] ROW;
+    wire [3:0] KEY;
+
+    keypad_4x4_scanner uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .COL(COL),
+        .ROW(ROW),
+        .KEY(KEY)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK   = 0;
+        RESET = 1;
+        COL   = 4'b1111;
+
+        #20 RESET = 0;
+
+        // Simulate a key press
+        #20 COL = 4'b1101;
+        #20 COL = 4'b1111;
+
+        #50 $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t ROW=%b COL=%b KEY=%b",
+                 $time, ROW, COL, KEY);
+    end
+
+endmodule
