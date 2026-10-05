@@ -1,0 +1,50 @@
+`timescale 1ns/1ps
+
+module tb_can_frame_receiver;
+
+    reg CLK;
+    reg RESET;
+    reg CAN_RX;
+
+    wire [7:0] DATA;
+    wire VALID;
+
+    can_frame_receiver uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .CAN_RX(CAN_RX),
+        .DATA(DATA),
+        .VALID(VALID)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK    = 0;
+        RESET  = 1;
+        CAN_RX = 1;
+
+        #20 RESET = 0;
+
+        // Start of Frame
+        #10 CAN_RX = 0;
+
+        // Data: 10110101
+        #10 CAN_RX = 1;
+        #10 CAN_RX = 0;
+        #10 CAN_RX = 1;
+        #10 CAN_RX = 1;
+        #10 CAN_RX = 0;
+        #10 CAN_RX = 1;
+        #10 CAN_RX = 0;
+        #10 CAN_RX = 1;
+
+        #20 $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t CAN_RX=%b DATA=%b VALID=%b",
+                 $time, CAN_RX, DATA, VALID);
+    end
+
+endmodule
