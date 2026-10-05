@@ -1,0 +1,39 @@
+`timescale 1ns/1ps
+
+module tb_lcd_16x2_controller;
+
+    reg CLK;
+    reg RESET;
+
+    wire LCD_RS;
+    wire LCD_EN;
+    wire [7:0] LCD_DATA;
+
+    lcd_16x2_controller uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .LCD_RS(LCD_RS),
+        .LCD_EN(LCD_EN),
+        .LCD_DATA(LCD_DATA)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+
+        #20;
+        RESET = 0;
+
+        #6000000;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t RS=%b EN=%b DATA=%c",
+                 $time, LCD_RS, LCD_EN, LCD_DATA);
+    end
+
+endmodule
