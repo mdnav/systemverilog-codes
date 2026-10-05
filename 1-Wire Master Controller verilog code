@@ -1,0 +1,69 @@
+module one_wire_master (
+    input  CLK,
+    input  RESET,
+    inout  ONE_WIRE,
+    output reg PRESENCE,
+    output reg BUSY
+);
+
+    reg drive_low;
+    reg [15:0] count;
+    reg [1:0] state;
+
+    assign ONE_WIRE = drive_low ? 1'b0 : 1'bz;
+
+    localparam IDLE = 2'd0,
+               RESET_PULSE = 2'd1,
+               PRESENCE_WAIT = 2'd2;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            drive_low <= 1'b0;
+            count     <= 16'd0;
+            state     <= IDLE;
+            PRESENCE  <= 1'b0;
+            BUSY      <= 1'b0;
+        end
+        else begin
+            case (state)
+
+                IDLE: begin
+                    PRESENCE  <= 1'b0;
+                    BUSY      <= 1'b1;
+                    drive_low <= 1'b1;
+                    count     <= 16'd0;
+                    state     <= RESET_PULSE;
+                end
+
+                RESET_PULSE: begin
+                    if (count < 16'd480) begin
+                        drive_low <= 1'b1;
+                        count <= count + 1'b1;
+                    end
+                    else begin
+                        drive_low <= 1'b0;
+                        count <= 16'd0;
+                        state <= PRESENCE_WAIT;
+                    end
+                end
+
+                PRESENCE_WAIT: begin
+                    if (count < 16'd70) begin
+                        if (!ONE_WIRE)
+                            PRESENCE <= 1'b1;
+
+                        count <= count + 1'b1;
+                    end
+                    else begin
+                        BUSY  <= 1'b0;
+                        state <= IDLE;
+                    end
+                end
+
+                default: state <= IDLE;
+
+            endcase
+        end
+    end
+
+endmodule
