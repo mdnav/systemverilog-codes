@@ -1,0 +1,37 @@
+module can_bit_stuff_checker (
+    input        CLK,
+    input        RESET,
+    input        CAN_RX,
+    output reg   ERROR
+);
+
+    reg previous_bit;
+    reg [2:0] same_count;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            previous_bit <= 1'b1;
+            same_count   <= 3'd0;
+            ERROR        <= 1'b0;
+        end
+        else begin
+            ERROR <= 1'b0;
+
+            if (CAN_RX == previous_bit) begin
+                if (same_count == 3'd5) begin
+                    ERROR      <= 1'b1;
+                    same_count <= 3'd0;
+                end
+                else begin
+                    same_count <= same_count + 1'b1;
+                end
+            end
+            else begin
+                same_count <= 3'd1;
+            end
+
+            previous_bit <= CAN_RX;
+        end
+    end
+
+endmodule
