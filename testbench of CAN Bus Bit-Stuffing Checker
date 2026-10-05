@@ -1,0 +1,57 @@
+`timescale 1ns/1ps
+
+module tb_can_bit_stuff_checker;
+
+    reg CLK;
+    reg RESET;
+    reg CAN_RX;
+
+    wire ERROR;
+
+    can_bit_stuff_checker uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .CAN_RX(CAN_RX),
+        .ERROR(ERROR)
+    );
+
+    always #5 CLK = ~CLK;
+
+    task send_bit;
+        input bit_value;
+        begin
+            CAN_RX = bit_value;
+            #10;
+        end
+    endtask
+
+    initial begin
+        CLK   = 0;
+        RESET = 1;
+        CAN_RX = 1;
+
+        #20 RESET = 0;
+
+        // Valid sequence
+        send_bit(1);
+        send_bit(0);
+        send_bit(1);
+        send_bit(0);
+
+        // Six consecutive 1s -> stuffing error
+        send_bit(1);
+        send_bit(1);
+        send_bit(1);
+        send_bit(1);
+        send_bit(1);
+        send_bit(1);
+
+        #20 $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t CAN_RX=%b ERROR=%b",
+                 $time, CAN_RX, ERROR);
+    end
+
+endmodule
