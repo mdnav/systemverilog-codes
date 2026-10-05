@@ -1,0 +1,51 @@
+module ir_remote_decoder (
+    input        CLK,
+    input        RESET,
+    input        IR_IN,
+    output reg [7:0] COMMAND,
+    output reg       VALID
+);
+
+    reg [15:0] count;
+    reg [7:0]  shift_reg;
+    reg [3:0]  bit_count;
+    reg        receiving;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            count      <= 16'd0;
+            shift_reg  <= 8'd0;
+            bit_count  <= 4'd0;
+            receiving  <= 1'b0;
+            COMMAND    <= 8'd0;
+            VALID      <= 1'b0;
+        end
+        else begin
+            VALID <= 1'b0;
+
+            if (!receiving) begin
+                if (IR_IN == 1'b0) begin
+                    count     <= 16'd0;
+                    bit_count <= 4'd0;
+                    receiving <= 1'b1;
+                end
+            end
+            else begin
+                count <= count + 1'b1;
+
+                if (count == 16'd100) begin
+                    shift_reg <= {shift_reg[6:0], IR_IN};
+                    bit_count <= bit_count + 1'b1;
+                    count     <= 16'd0;
+
+                    if (bit_count == 4'd7) begin
+                        COMMAND   <= {shift_reg[6:0], IR_IN};
+                        VALID     <= 1'b1;
+                        receiving <= 1'b0;
+                    end
+                end
+            end
+        end
+    end
+
+endmodule
