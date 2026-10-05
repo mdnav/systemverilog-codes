@@ -1,0 +1,105 @@
+`timescale 1ns/1ps
+
+module tb_vga_text_controller;
+
+    reg CLK;
+    reg RESET;
+
+    reg [9:0] VGA_X;
+    reg [9:0] VGA_Y;
+    reg       VGA_ACTIVE;
+
+    wire PIXEL_ON;
+
+    vga_text_controller DUT (
+        .CLK(CLK),
+        .RESET(RESET),
+
+        .VGA_X(VGA_X),
+        .VGA_Y(VGA_Y),
+        .VGA_ACTIVE(VGA_ACTIVE),
+
+        .PIXEL_ON(PIXEL_ON)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+
+        VGA_X = 0;
+        VGA_Y = 0;
+        VGA_ACTIVE = 0;
+
+        #20;
+        RESET = 0;
+
+        // Scan the 8x8 character area
+        VGA_ACTIVE = 1;
+
+        VGA_Y = 100;
+
+        VGA_X = 100;
+        #10;
+        VGA_X = 101;
+        #10;
+        VGA_X = 102;
+        #10;
+        VGA_X = 103;
+        #10;
+        VGA_X = 104;
+        #10;
+        VGA_X = 105;
+        #10;
+        VGA_X = 106;
+        #10;
+        VGA_X = 107;
+        #10;
+
+        VGA_Y = 101;
+        VGA_X = 100;
+        #10;
+
+        VGA_Y = 102;
+        VGA_X = 100;
+        #10;
+
+        VGA_Y = 103;
+        VGA_X = 100;
+        #10;
+
+        VGA_Y = 104;
+        VGA_X = 100;
+        #10;
+
+        VGA_Y = 105;
+        VGA_X = 100;
+        #10;
+
+        VGA_Y = 106;
+        VGA_X = 100;
+        #10;
+
+        VGA_Y = 107;
+        VGA_X = 100;
+        #10;
+
+        VGA_ACTIVE = 0;
+
+        #20;
+        $finish;
+    end
+
+    initial begin
+        $monitor(
+            "TIME=%0t | X=%d | Y=%d | ACTIVE=%b | PIXEL_ON=%b",
+            $time,
+            VGA_X,
+            VGA_Y,
+            VGA_ACTIVE,
+            PIXEL_ON
+        );
+    end
+
+endmodule
