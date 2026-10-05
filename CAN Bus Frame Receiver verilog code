@@ -1,0 +1,46 @@
+module can_frame_receiver (
+    input        CLK,
+    input        RESET,
+    input        CAN_RX,
+    output reg [7:0] DATA,
+    output reg       VALID
+);
+
+    reg [7:0] shift_reg;
+    reg [3:0] bit_count;
+    reg       receiving;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            shift_reg <= 8'd0;
+            bit_count <= 4'd0;
+            receiving <= 1'b0;
+            DATA      <= 8'd0;
+            VALID     <= 1'b0;
+        end
+        else begin
+            VALID <= 1'b0;
+
+            // Detect Start of Frame
+            if (!receiving && CAN_RX == 1'b0) begin
+                receiving <= 1'b1;
+                bit_count <= 4'd0;
+            end
+
+            else if (receiving) begin
+                shift_reg <= {shift_reg[6:0], CAN_RX};
+
+                if (bit_count == 4'd7) begin
+                    DATA      <= {shift_reg[6:0], CAN_RX};
+                    VALID     <= 1'b1;
+                    receiving <= 1'b0;
+                    bit_count <= 4'd0;
+                end
+                else begin
+                    bit_count <= bit_count + 1'b1;
+                end
+            end
+        end
+    end
+
+endmodule
