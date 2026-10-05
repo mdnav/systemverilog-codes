@@ -1,0 +1,80 @@
+module lcd_16x2_controller (
+    input        CLK,
+    input        RESET,
+    output reg   LCD_RS,
+    output reg   LCD_EN,
+    output reg [7:0] LCD_DATA
+);
+
+    reg [3:0] state;
+    reg [2:0] char_index;
+    reg [19:0] delay_count;
+
+    localparam INIT = 0,
+               WRITE = 1,
+               DONE = 2;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            state       <= INIT;
+            char_index  <= 0;
+            delay_count <= 0;
+            LCD_RS      <= 0;
+            LCD_EN      <= 0;
+            LCD_DATA    <= 8'h38;   // 8-bit, 2-line LCD
+        end
+        else begin
+            case (state)
+
+                INIT: begin
+                    LCD_RS   <= 0;
+                    LCD_DATA <= 8'h38;
+                    LCD_EN   <= 1;
+
+                    if (delay_count == 20'd100000) begin
+                        LCD_EN      <= 0;
+                        delay_count  <= 0;
+                        LCD_DATA     <= 8'h01; // Clear display
+                        state        <= WRITE;
+                    end
+                    else
+                        delay_count <= delay_count + 1;
+                end
+
+                WRITE: begin
+                    LCD_RS <= 1;
+                    LCD_EN <= 1;
+
+                    case (char_index)
+                        0: LCD_DATA <= "H";
+                        1: LCD_DATA <= "E";
+                        2: LCD_DATA <= "L";
+                        3: LCD_DATA <= "L";
+                        4: LCD_DATA <= "O";
+                        default: LCD_DATA <= 8'h20;
+                    endcase
+
+                    if (delay_count == 20'd100000) begin
+                        LCD_EN      <= 0;
+                        delay_count <= 0;
+
+                        if (char_index == 4)
+                            state <= DONE;
+                        else
+                            char_index <= char_index + 1;
+                    end
+                    else
+                        delay_count <= delay_count + 1;
+                end
+
+                DONE: begin
+                    LCD_RS   <= 0;
+                    LCD_EN   <= 0;
+                    LCD_DATA <= 8'h00;
+                end
+
+            endcase
+        end
+    end
+
+endmodule
