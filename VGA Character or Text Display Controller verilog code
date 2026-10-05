@@ -1,0 +1,83 @@
+module vga_text_controller (
+    input  wire       CLK,
+    input  wire       RESET,
+
+    input  wire [9:0] VGA_X,
+    input  wire [9:0] VGA_Y,
+    input  wire       VGA_ACTIVE,
+
+    output reg        PIXEL_ON
+);
+
+    reg [7:0] character;
+
+    reg [2:0] row;
+    reg [2:0] col;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            PIXEL_ON <= 1'b0;
+            character <= 8'h41;   // 'A'
+            row <= 3'd0;
+            col <= 3'd0;
+        end
+        else begin
+
+            PIXEL_ON <= 1'b0;
+
+            if (VGA_ACTIVE) begin
+
+                // Display a single 8x8 character
+                // at screen position (100,100)
+                if ((VGA_X >= 100) && (VGA_X < 108) &&
+                    (VGA_Y >= 100) && (VGA_Y < 108)) begin
+
+                    row <= VGA_Y - 100;
+                    col <= VGA_X - 100;
+
+                    // Character 'A'
+                    case (VGA_Y - 100)
+
+                        0: begin
+                            if ((VGA_X - 100 == 2) ||
+                                (VGA_X - 100 == 3) ||
+                                (VGA_X - 100 == 4))
+                                PIXEL_ON <= 1'b1;
+                        end
+
+                        1: begin
+                            if ((VGA_X - 100 == 1) ||
+                                (VGA_X - 100 == 5))
+                                PIXEL_ON <= 1'b1;
+                        end
+
+                        2: begin
+                            if ((VGA_X - 100 == 0) ||
+                                (VGA_X - 100 == 6))
+                                PIXEL_ON <= 1'b1;
+                        end
+
+                        3: begin
+                            if ((VGA_X - 100 == 0) ||
+                                (VGA_X - 100 == 1) ||
+                                (VGA_X - 100 == 2) ||
+                                (VGA_X - 100 == 3) ||
+                                (VGA_X - 100 == 4) ||
+                                (VGA_X - 100 == 5) ||
+                                (VGA_X - 100 == 6))
+                                PIXEL_ON <= 1'b1;
+                        end
+
+                        4, 5, 6, 7: begin
+                            if ((VGA_X - 100 == 0) ||
+                                (VGA_X - 100 == 6))
+                                PIXEL_ON <= 1'b1;
+                        end
+
+                    endcase
+                end
+            end
+        end
+    end
+
+endmodule
