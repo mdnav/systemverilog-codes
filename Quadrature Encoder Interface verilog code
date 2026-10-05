@@ -1,0 +1,41 @@
+module quadrature_encoder (
+    input CLK,
+    input RESET,
+    input A,
+    input B,
+    output reg [7:0] POSITION
+);
+
+    reg [1:0] prev_state;
+    reg [1:0] curr_state;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            prev_state <= 2'b00;
+            curr_state <= 2'b00;
+            POSITION   <= 8'd0;
+        end
+        else begin
+            prev_state <= curr_state;
+            curr_state <= {A, B};
+
+            case ({prev_state, curr_state})
+                4'b0001,
+                4'b0111,
+                4'b1110,
+                4'b1000:
+                    POSITION <= POSITION + 1'b1;
+
+                4'b0010,
+                4'b1011,
+                4'b1101,
+                4'b0100:
+                    POSITION <= POSITION - 1'b1;
+
+                default:
+                    POSITION <= POSITION;
+            endcase
+        end
+    end
+
+endmodule
