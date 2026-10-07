@@ -1,1 +1,75 @@
+`timescale 1ns/1ps
 
+module tb_ethernet_mac_receiver;
+
+    reg CLK;
+    reg RESET;
+    reg [7:0] RX_DATA;
+    reg RX_VALID;
+
+    wire [7:0] DATA_OUT;
+    wire DATA_VALID;
+    wire FRAME_DONE;
+
+    ethernet_mac_receiver uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .RX_DATA(RX_DATA),
+        .RX_VALID(RX_VALID),
+        .DATA_OUT(DATA_OUT),
+        .DATA_VALID(DATA_VALID),
+        .FRAME_DONE(FRAME_DONE)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK      = 0;
+        RESET    = 1;
+        RX_DATA  = 0;
+        RX_VALID = 0;
+
+        #20 RESET = 0;
+
+        // Ethernet preamble
+        send_byte(8'h55);
+        send_byte(8'h55);
+        send_byte(8'h55);
+        send_byte(8'h55);
+        send_byte(8'h55);
+        send_byte(8'h55);
+        send_byte(8'h55);
+
+        // Start of frame
+        send_byte(8'hD5);
+
+        // Frame data
+        send_byte(8'h12);
+        send_byte(8'h34);
+        send_byte(8'h56);
+        send_byte(8'h78);
+
+        RX_VALID = 0;
+        #20;
+
+        $finish;
+    end
+
+    task send_byte;
+        input [7:0] data;
+        begin
+            @(negedge CLK);
+            RX_DATA  = data;
+            RX_VALID = 1;
+            @(negedge CLK);
+            RX_VALID = 0;
+        end
+    endtask
+
+    initial begin
+        $monitor("Time=%0t RX=%h DATA=%h VALID=%b DONE=%b",
+                 $time, RX_DATA, DATA_OUT,
+                 DATA_VALID, FRAME_DONE);
+    end
+
+endmodule
