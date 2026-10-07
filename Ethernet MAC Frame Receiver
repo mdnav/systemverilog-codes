@@ -1,0 +1,58 @@
+module ethernet_mac_receiver (
+    input        CLK,
+    input        RESET,
+    input  [7:0]  RX_DATA,
+    input        RX_VALID,
+
+    output reg [7:0] DATA_OUT,
+    output reg       DATA_VALID,
+    output reg       FRAME_DONE
+);
+
+    reg [3:0] preamble_count;
+    reg       receiving;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            preamble_count <= 0;
+            receiving      <= 0;
+            DATA_OUT       <= 0;
+            DATA_VALID     <= 0;
+            FRAME_DONE     <= 0;
+        end
+        else begin
+            DATA_VALID <= 0;
+            FRAME_DONE <= 0;
+
+            if (RX_VALID) begin
+
+                // Detect Ethernet preamble
+                if (!receiving) begin
+                    if (RX_DATA == 8'h55) begin
+                        if (preamble_count == 6) begin
+                            preamble_count <= 0;
+                            receiving <= 1;
+                        end
+                        else begin
+                            preamble_count <= preamble_count + 1;
+                        end
+                    end
+                    else begin
+                        preamble_count <= 0;
+                    end
+                end
+
+                // Receive frame data
+                else begin
+                    DATA_OUT   <= RX_DATA;
+                    DATA_VALID <= 1;
+                end
+            end
+            else if (receiving) begin
+                receiving  <= 0;
+                FRAME_DONE <= 1;
+            end
+        end
+    end
+
+endmodule
