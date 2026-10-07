@@ -1,0 +1,45 @@
+module ethernet_crc32_checker (
+    input        CLK,
+    input        RESET,
+    input        DATA_VALID,
+    input  [7:0] DATA_IN,
+    input        CRC_VALID,
+    input  [31:0] RECEIVED_CRC,
+
+    output reg   CRC_OK
+);
+
+    reg [31:0] CRC;
+    reg [31:0] crc_next;
+    integer i;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            CRC    <= 32'hFFFFFFFF;
+            CRC_OK <= 1'b0;
+        end
+        else begin
+
+            if (DATA_VALID) begin
+                crc_next = CRC;
+
+                for (i = 0; i < 8; i = i + 1) begin
+                    if (crc_next[0] ^ DATA_IN[i])
+                        crc_next = (crc_next >> 1) ^ 32'hEDB88320;
+                    else
+                        crc_next = crc_next >> 1;
+                end
+
+                CRC <= crc_next;
+            end
+
+            if (CRC_VALID) begin
+                if (CRC == RECEIVED_CRC)
+                    CRC_OK <= 1'b1;
+                else
+                    CRC_OK <= 1'b0;
+            end
+        end
+    end
+
+endmodule
