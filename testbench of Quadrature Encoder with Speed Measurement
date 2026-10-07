@@ -1,0 +1,45 @@
+`timescale 1ns/1ps
+
+module tb_encoder_speed_measurement;
+
+    reg CLK;
+    reg RESET;
+    reg A;
+
+    wire [15:0] PULSE_COUNT;
+    wire [15:0] SPEED;
+
+    encoder_speed_measurement uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .A(A),
+        .PULSE_COUNT(PULSE_COUNT),
+        .SPEED(SPEED)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+        A = 0;
+
+        #20 RESET = 0;
+
+        // Generate encoder pulses
+        repeat (5) begin
+            #20 A = 1;
+            #20 A = 0;
+        end
+
+        #10000;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t A=%b Count=%d Speed=%d",
+                 $time, A, PULSE_COUNT, SPEED);
+    end
+
+endmodule
