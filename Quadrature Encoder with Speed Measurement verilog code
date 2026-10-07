@@ -1,0 +1,38 @@
+module encoder_speed_measurement (
+    input        CLK,
+    input        RESET,
+    input        A,
+    output reg [15:0] PULSE_COUNT,
+    output reg [15:0] SPEED
+);
+
+    reg A_prev;
+    reg [15:0] timer;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            A_prev     <= 1'b0;
+            PULSE_COUNT <= 16'd0;
+            SPEED      <= 16'd0;
+            timer      <= 16'd0;
+        end
+        else begin
+            A_prev <= A;
+
+            // Count rising edges
+            if (A && !A_prev)
+                PULSE_COUNT <= PULSE_COUNT + 1'b1;
+
+            // Measurement window
+            if (timer == 16'd999) begin
+                SPEED <= PULSE_COUNT;
+                PULSE_COUNT <= 16'd0;
+                timer <= 16'd0;
+            end
+            else begin
+                timer <= timer + 1'b1;
+            end
+        end
+    end
+
+endmodule
