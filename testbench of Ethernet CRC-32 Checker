@@ -1,1 +1,69 @@
+`timescale 1ns/1ps
 
+module tb_ethernet_crc32_checker;
+
+    reg CLK;
+    reg RESET;
+    reg DATA_VALID;
+    reg [7:0] DATA_IN;
+    reg CRC_VALID;
+    reg [31:0] RECEIVED_CRC;
+
+    wire CRC_OK;
+
+    ethernet_crc32_checker uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .DATA_VALID(DATA_VALID),
+        .DATA_IN(DATA_IN),
+        .CRC_VALID(CRC_VALID),
+        .RECEIVED_CRC(RECEIVED_CRC),
+        .CRC_OK(CRC_OK)
+    );
+
+    always #5 CLK = ~CLK;
+
+    task send_byte;
+        input [7:0] data;
+        begin
+            @(negedge CLK);
+            DATA_IN = data;
+            DATA_VALID = 1'b1;
+
+            @(negedge CLK);
+            DATA_VALID = 1'b0;
+        end
+    endtask
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+        DATA_VALID = 0;
+        CRC_VALID = 0;
+        DATA_IN = 0;
+        RECEIVED_CRC = 0;
+
+        #20 RESET = 0;
+
+        send_byte(8'h12);
+        send_byte(8'h34);
+        send_byte(8'h56);
+        send_byte(8'h78);
+
+        // Example CRC comparison
+        @(negedge CLK);
+        RECEIVED_CRC = uut.CRC;
+        CRC_VALID = 1'b1;
+
+        @(negedge CLK);
+        CRC_VALID = 1'b0;
+
+        #20 $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t DATA=%h CRC=%h CRC_OK=%b",
+                 $time, DATA_IN, uut.CRC, CRC_OK);
+    end
+
+endmodule
