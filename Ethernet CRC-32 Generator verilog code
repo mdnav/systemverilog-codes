@@ -1,0 +1,31 @@
+module ethernet_crc32 (
+    input        CLK,
+    input        RESET,
+    input        DATA_VALID,
+    input  [7:0] DATA_IN,
+    output reg [31:0] CRC
+);
+
+    integer i;
+    reg [31:0] crc_next;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            CRC <= 32'hFFFFFFFF;
+        end
+        else if (DATA_VALID) begin
+
+            crc_next = CRC;
+
+            for (i = 0; i < 8; i = i + 1) begin
+                if ((crc_next[0] ^ DATA_IN[i]) == 1'b1)
+                    crc_next = (crc_next >> 1) ^ 32'hEDB88320;
+                else
+                    crc_next = crc_next >> 1;
+            end
+
+            CRC <= crc_next;
+        end
+    end
+
+endmodule
