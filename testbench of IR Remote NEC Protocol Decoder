@@ -1,0 +1,45 @@
+`timescale 1ns/1ps
+
+module tb_ir_nec_decoder;
+
+    reg CLK;
+    reg RESET;
+    reg IR_IN;
+
+    wire [7:0] COMMAND;
+    wire VALID;
+
+    ir_nec_decoder uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .IR_IN(IR_IN),
+        .COMMAND(COMMAND),
+        .VALID(VALID)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK   = 0;
+        RESET = 1;
+        IR_IN = 1;
+
+        #20 RESET = 0;
+
+        // NEC start pulse
+        #20 IR_IN = 0;
+        #100 IR_IN = 1;
+
+        // Hold signal for demonstration
+        #4000 IR_IN = 0;
+        #100 IR_IN = 1;
+
+        #1000 $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t IR=%b COMMAND=%h VALID=%b",
+                 $time, IR_IN, COMMAND, VALID);
+    end
+
+endmodule
