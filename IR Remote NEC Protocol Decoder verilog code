@@ -1,0 +1,57 @@
+module ir_nec_decoder (
+    input        CLK,
+    input        RESET,
+    input        IR_IN,
+
+    output reg [7:0] COMMAND,
+    output reg       VALID
+);
+
+    reg [31:0] counter;
+    reg [31:0] data;
+    reg [5:0]  bit_count;
+    reg        receiving;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            counter   <= 0;
+            data      <= 0;
+            bit_count <= 0;
+            receiving <= 0;
+            COMMAND   <= 0;
+            VALID     <= 0;
+        end
+        else begin
+            VALID <= 0;
+
+            if (!receiving) begin
+                // Detect NEC start pulse
+                if (IR_IN == 1'b0) begin
+                    counter   <= 0;
+                    bit_count <= 0;
+                    receiving <= 1;
+                end
+            end
+            else begin
+                counter <= counter + 1;
+
+                // Sample one bit periodically
+                if (counter == 32'd100) begin
+                    data[bit_count] <= IR_IN;
+                    counter <= 0;
+
+                    if (bit_count == 31) begin
+                        COMMAND   <= data[23:16];
+                        VALID     <= 1;
+                        receiving <= 0;
+                        bit_count <= 0;
+                    end
+                    else begin
+                        bit_count <= bit_count + 1;
+                    end
+                end
+            end
+        end
+    end
+
+endmodule
