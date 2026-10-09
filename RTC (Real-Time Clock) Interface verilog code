@@ -1,0 +1,35 @@
+module rtc_interface (
+    input CLK,
+    input RESET,
+    output reg [5:0] SECONDS,
+    output reg [5:0] MINUTES,
+    output reg [4:0] HOURS
+);
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            SECONDS <= 0;
+            MINUTES <= 0;
+            HOURS   <= 0;
+        end
+        else begin
+            if (SECONDS == 59) begin
+                SECONDS <= 0;
+
+                if (MINUTES == 59) begin
+                    MINUTES <= 0;
+
+                    if (HOURS == 23)
+                        HOURS <= 0;
+                    else
+                        HOURS <= HOURS + 1;
+                end
+                else
+                    MINUTES <= MINUTES + 1;
+            end
+            else
+                SECONDS <= SECONDS + 1;
+        end
+    end
+
+endmodule
