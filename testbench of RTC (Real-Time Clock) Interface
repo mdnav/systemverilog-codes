@@ -1,0 +1,38 @@
+`timescale 1ns/1ps
+
+module tb_rtc_interface;
+
+    reg CLK, RESET;
+
+    wire [5:0] SECONDS;
+    wire [5:0] MINUTES;
+    wire [4:0] HOURS;
+
+    rtc_interface uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .SECONDS(SECONDS),
+        .MINUTES(MINUTES),
+        .HOURS(HOURS)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+
+        #10 RESET = 0;
+
+        // Run the clock
+        #1000;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t | %0d:%0d:%0d",
+                 $time, HOURS, MINUTES, SECONDS);
+    end
+
+endmodule
