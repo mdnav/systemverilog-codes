@@ -1,0 +1,77 @@
+`timescale 1ns/1ps
+
+module tb_ir_nec_timing_decoder;
+
+    reg CLK, RESET, IR_IN;
+    wire [7:0] COMMAND;
+    wire VALID, ERROR;
+
+    ir_nec_timing_decoder uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .IR_IN(IR_IN),
+        .COMMAND(COMMAND),
+        .VALID(VALID),
+        .ERROR(ERROR)
+    );
+
+    always #500 CLK = ~CLK; // 1 MHz clock
+
+    task hold_ir;
+        input level;
+        input integer duration_us;
+        begin
+            IR_IN = level;
+            #(duration_us * 1000);
+        end
+    endtask
+
+    task send_bit;
+        input bit_value;
+        begin
+            hold_ir(0, 560);
+            if (bit_value)
+                hold_ir(1, 1690);
+            else
+                hold_ir(1, 560);
+        end
+    endtask
+
+    integer i;
+    reg [31:0] test_frame;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+        IR_IN = 1;
+
+        // Address 00, inverted address FF,
+        // command 34, inverted command CB.
+        test_frame = 32'h00FF34CB;
+
+        #5000 RESET = 0;
+        hold_ir(1, 10000);
+
+        // NEC leader
+        hold_ir(0, 9000);
+        hold_ir(1, 4500);
+
+        // NEC data is transmitted least-significant bit first.
+        for (i = 0; i < 32; i = i + 1)
+            send_bit(test_frame[i]);
+
+        hold_ir(0, 560);
+        hold_ir(1, 5000);
+
+        $display("COMMAND=%h VALID=%b ERROR=%b",
+                 COMMAND, VALID, ERROR);
+
+        $finish;
+    end
+
+    initial begin
+        $monitor("Time=%0t IR=%b COMMAND=%h VALID=%b ERROR=%b",
+                 $time, IR_IN, COMMAND, VALID, ERROR);
+    end
+
+endmodule
