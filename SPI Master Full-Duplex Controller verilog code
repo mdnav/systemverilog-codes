@@ -1,0 +1,85 @@
+module spi_master_full_duplex (
+    input CLK,
+    input RESET,
+    input START,
+    input [7:0] TX_DATA,
+    input MISO,
+
+    output reg MOSI,
+    output reg SCLK,
+    output reg CS_N,
+    output reg [7:0] RX_DATA,
+    output reg BUSY,
+    output reg DONE
+);
+
+    reg [7:0] tx_shift;
+    reg [7:0] rx_shift;
+    reg [3:0] bit_count;
+    reg [1:0] state;
+
+    localparam IDLE = 2'd0,
+               TRANSFER = 2'd1,
+               FINISH = 2'd2;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            MOSI     <= 1'b0;
+            SCLK     <= 1'b0;
+            CS_N     <= 1'b1;
+            RX_DATA  <= 8'd0;
+            tx_shift <= 8'd0;
+            rx_shift <= 8'd0;
+            bit_count <= 0;
+            BUSY     <= 1'b0;
+            DONE     <= 1'b0;
+            state    <= IDLE;
+        end
+        else begin
+            DONE <= 1'b0;
+
+            case (state)
+                IDLE: begin
+                    SCLK <= 1'b0;
+                    CS_N <= 1'b1;
+                    BUSY <= 1'b0;
+
+                    if (START) begin
+                        tx_shift <= TX_DATA;
+                        rx_shift <= 0;
+                        bit_count <= 0;
+                        MOSI <= TX_DATA[7];
+                        CS_N <= 1'b0;
+                        BUSY <= 1'b1;
+                        state <= TRANSFER;
+                    end
+                end
+
+                TRANSFER: begin
+                    SCLK <= ~SCLK;
+
+                    if (SCLK == 1'b0) begin
+                        rx_shift <= {rx_shift[6:0], MISO};
+                    end
+                    else begin
+                        if (bit_count == 7) begin
+                            RX_DATA <= rx_shift;
+                            CS_N <= 1'b1;
+                            BUSY <= 1'b0;
+                            DONE <= 1'b1;
+                            state <= IDLE;
+                        end
+                        else begin
+                            tx_shift <= {tx_shift[6:0], 1'b0};
+                            MOSI <= tx_shift[6];
+                            bit_count <= bit_count + 1'b1;
+                        end
+                    end
+                end
+
+                default: state <= IDLE;
+            endcase
+        end
+    end
+
+endmodule
