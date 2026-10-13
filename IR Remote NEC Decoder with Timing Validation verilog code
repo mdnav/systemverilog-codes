@@ -1,0 +1,155 @@
+module ir_nec_timing_decoder (
+    input CLK,
+    input RESET,
+    input IR_IN,
+
+    output reg [7:0] COMMAND,
+    output reg VALID,
+    output reg ERROR
+);
+
+    // Timing counts assume a 1 MHz clock.
+    // One clock cycle = 1 microsecond.
+    parameter [15:0] LEADER_LOW_MIN  = 8500;
+    parameter [15:0] LEADER_LOW_MAX  = 9500;
+    parameter [15:0] LEADER_HIGH_MIN = 4000;
+    parameter [15:0] LEADER_HIGH_MAX = 5000;
+    parameter [15:0] BIT_LOW_MIN     = 400;
+    parameter [15:0] BIT_LOW_MAX     = 800;
+    parameter [15:0] ZERO_HIGH_MIN   = 400;
+    parameter [15:0] ZERO_HIGH_MAX   = 800;
+    parameter [15:0] ONE_HIGH_MIN    = 1400;
+    parameter [15:0] ONE_HIGH_MAX    = 1900;
+
+    reg ir_prev;
+    reg [15:0] pulse_count;
+    reg [31:0] frame;
+    reg [5:0] bit_count;
+    reg [2:0] state;
+
+    localparam IDLE       = 3'd0,
+               LEADER_LOW = 3'd1,
+               LEADER_HIGH= 3'd2,
+               BIT_LOW    = 3'd3,
+               BIT_HIGH   = 3'd4,
+               COMPLETE   = 3'd5;
+
+    always @(posedge CLK or posedge RESET) begin
+        if (RESET) begin
+            ir_prev     <= 1'b1;
+            pulse_count <= 0;
+            frame       <= 0;
+            bit_count   <= 0;
+            COMMAND     <= 0;
+            VALID       <= 0;
+            ERROR       <= 0;
+            state       <= IDLE;
+        end else begin
+            ir_prev <= IR_IN;
+            VALID <= 1'b0;
+            ERROR <= 1'b0;
+
+            if (state != IDLE && pulse_count != 16'hFFFF)
+                pulse_count <= pulse_count + 1'b1;
+
+            case (state)
+
+                IDLE: begin
+                    pulse_count <= 0;
+                    if (ir_prev && !IR_IN) begin
+                        pulse_count <= 0;
+                        state <= LEADER_LOW;
+                    end
+                end
+
+                LEADER_LOW: begin
+                    if (!ir_prev && IR_IN) begin
+                        if (pulse_count >= LEADER_LOW_MIN &&
+                            pulse_count <= LEADER_LOW_MAX) begin
+                            pulse_count <= 0;
+                            state <= LEADER_HIGH;
+                        end else begin
+                            ERROR <= 1'b1;
+                            state <= IDLE;
+                        end
+                    end
+                end
+
+                LEADER_HIGH: begin
+                    if (ir_prev && !IR_IN) begin
+                        if (pulse_count >= LEADER_HIGH_MIN &&
+                            pulse_count <= LEADER_HIGH_MAX) begin
+                            pulse_count <= 0;
+                            bit_count <= 0;
+                            frame <= 0;
+                            state <= BIT_LOW;
+                        end else begin
+                            ERROR <= 1'b1;
+                            state <= IDLE;
+                        end
+                    end
+                end
+
+                BIT_LOW: begin
+                    if (!ir_prev && IR_IN) begin
+                        if (pulse_count >= BIT_LOW_MIN &&
+                            pulse_count <= BIT_LOW_MAX) begin
+                            pulse_count <= 0;
+                            state <= BIT_HIGH;
+                        end else begin
+                            ERROR <= 1'b1;
+                            state <= IDLE;
+                        end
+                    end
+                end
+
+                BIT_HIGH: begin
+                    if (ir_prev && !IR_IN) begin
+                        if (pulse_count >= ZERO_HIGH_MIN &&
+                            pulse_count <= ZERO_HIGH_MAX) begin
+                            frame[bit_count] <= 1'b0;
+                        end else if (pulse_count >= ONE_HIGH_MIN &&
+                                     pulse_count <= ONE_HIGH_MAX) begin
+                            frame[bit_count] <= 1'b1;
+                        end else begin
+                            ERROR <= 1'b1;
+                            state <= IDLE;
+                        end
+
+                        if (pulse_count >= ZERO_HIGH_MIN &&
+                            pulse_count <= ZERO_HIGH_MAX ||
+                            pulse_count >= ONE_HIGH_MIN &&
+                            pulse_count <= ONE_HIGH_MAX) begin
+
+                            pulse_count <= 0;
+
+                            if (bit_count == 31)
+                                state <= COMPLETE;
+                            else begin
+                                bit_count <= bit_count + 1'b1;
+                                state <= BIT_LOW;
+                            end
+                        end
+                    end
+                end
+
+                COMPLETE: begin
+                    // NEC sends the command byte followed by its complement.
+                    if (frame[23:16] == ~frame[31:24]) begin
+                        COMMAND <= frame[23:16];
+                        VALID <= 1'b1;
+                    end else begin
+                        ERROR <= 1'b1;
+                    end
+
+                    state <= IDLE;
+                    pulse_count <= 0;
+                end
+
+                default: state <= IDLE;
+
+            endcase
+        end
+    end
+
+endmodule
