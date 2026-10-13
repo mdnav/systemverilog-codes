@@ -1,0 +1,55 @@
+`timescale 1ns/1ps
+
+module tb_spi_master_full_duplex;
+
+    reg CLK, RESET, START, MISO;
+    reg [7:0] TX_DATA;
+
+    wire MOSI, SCLK, CS_N;
+    wire [7:0] RX_DATA;
+    wire BUSY, DONE;
+
+    spi_master_full_duplex uut (
+        .CLK(CLK),
+        .RESET(RESET),
+        .START(START),
+        .TX_DATA(TX_DATA),
+        .MISO(MISO),
+        .MOSI(MOSI),
+        .SCLK(SCLK),
+        .CS_N(CS_N),
+        .RX_DATA(RX_DATA),
+        .BUSY(BUSY),
+        .DONE(DONE)
+    );
+
+    always #5 CLK = ~CLK;
+
+    initial begin
+        CLK = 0;
+        RESET = 1;
+        START = 0;
+        MISO = 0;
+        TX_DATA = 8'hA5;
+
+        #20 RESET = 0;
+        #10 START = 1;
+        #10 START = 0;
+
+        // Provide a serial receive pattern
+        repeat (8) begin
+            #10 MISO = ~MISO;
+        end
+
+        #200 $finish;
+    end
+
+    initial begin
+        $monitor(
+            "Time=%0t SCLK=%b MOSI=%b MISO=%b CS_N=%b RX=%h BUSY=%b DONE=%b",
+            $time, SCLK, MOSI, MISO, CS_N,
+            RX_DATA, BUSY, DONE
+        );
+    end
+
+endmodule
